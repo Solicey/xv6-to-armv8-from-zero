@@ -7,7 +7,7 @@ OBJS = \
 	$K/start.o \
 	$K/uart.o \
 	$K/kpgdir.o \
-	$K/main.o
+	$K/console.o
 
 TOOLPREFIX = aarch64-linux-gnu-
 
@@ -19,7 +19,7 @@ OBJDUMP = $(TOOLPREFIX)objdump
 
 RM = rm -f
 
-CFLAGS = -Wall -Werror -g -O2 -fno-pie -fno-pic \
+CFLAGS = -Wall -Werror -g -fno-pie -fno-pic \
 		 -mcmodel=large -march=armv8-a -mtune=cortex-a72 \
 		 -fno-stack-protector -static -fno-builtin \
 		 -nostdlib -ffreestanding -nostartfiles \

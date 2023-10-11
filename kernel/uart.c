@@ -1,7 +1,7 @@
 // driver for ARM PrimeCell UART (PL011)
 #include "memlayout.h"
 
-static volatile unsigned int* uart_base;
+static volatile unsigned int* uart_base = (unsigned int*)UART0;
 
 // https://github.com/umanovskis/baremetal-arm/blob/master/doc/06_uart.md
 #define UART_DR		    0	        // data register
@@ -28,7 +28,7 @@ static volatile unsigned int* uart_base;
 
 void uartinit(void)
 {
-    uart_base = (unsigned int*)UART0;
+    uart_base = (unsigned int*)(UART0 + KERN_BASE);
 
     // set the bit rate: integer/fractional baud rate registers
     uart_base[UART_IBRD] = UART_CLK / (16 * UART_BITRATE);
@@ -43,7 +43,12 @@ void uartinit(void)
     uart_base[UART_LCRH] |= UART_LCRH_FEN;
 }
 
-void uartputc(const char* s)
+void uartputc(char c)
+{
+    uart_base[UART_DR] = (unsigned int)c;
+}
+
+void uartputs(const char* s)
 {
     while (*s != '\0')
     {
