@@ -4,4 +4,6 @@ void start()
 {
     uartinit();
     uartputc("Hello world\n");
+
+    for (;;);
 }

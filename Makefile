@@ -5,7 +5,9 @@ K = kernel
 OBJS = \
 	$K/entry.o \
 	$K/start.o \
-	$K/uart.o
+	$K/uart.o \
+	$K/kpgdir.o \
+	$K/main.o
 
 TOOLPREFIX = aarch64-linux-gnu-
 
@@ -17,13 +19,17 @@ OBJDUMP = $(TOOLPREFIX)objdump
 
 RM = rm -f
 
-CFLAGS = -Wall -g -O2 -fno-pie -fno-pic -mcmodel=large -march=armv8-a -mtune=cortex-a57 -fno-stack-protector -static -fno-builtin -nostdlib -ffreestanding -nostartfiles -mgeneral-regs-only -MMD -MP -Iinc
+CFLAGS = -Wall -Werror -g -O2 -fno-pie -fno-pic \
+		 -mcmodel=large -march=armv8-a -mtune=cortex-a72 \
+		 -fno-stack-protector -static -fno-builtin \
+		 -nostdlib -ffreestanding -nostartfiles \
+		 -mgeneral-regs-only -MMD -MP -Iinc
 LDFLAGS = -L. -z max-page-size=4096
 ASFLAGS = -march=armv8-a
 
 .PHONY: all
 
-all: fs.img
+a: fs.img
 
 $K/kernel.elf: $(OBJS) Makefile $K/kernel.ld
 	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $@ $(OBJS)
@@ -34,22 +40,33 @@ fs.img: $K/kernel.elf
 	$(OBJCOPY) -O binary $< $@
 
 %.o: %.S
-	$(AS) -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-.PRECIOUS: %.o
+# .PRECIOUS: %.o
 
-run: fs.img
-	$(QEMU) -machine virt -cpu cortex-a57 -m 128 -kernel $< -nographic
+r: fs.img
+	$(QEMU) -machine virt -cpu cortex-a72 -m 128 -kernel $< -nographic
 
-qemu-gdb: fs.img
-	$(QEMU) -machine virt -cpu cortex-a57 -m 128 -kernel $< -gdb tcp::11451 -nographic -singlestep -S
+hh: fs.img
+	$(QEMU) -machine virt -cpu cortex-a72 -m 128 -kernel $< -nographic -monitor telnet:127.0.0.1:9191,server,nowait
 
-gdb:
+gg: 
+	telnet 127.0.0.1 9191
+
+h: fs.img
+	$(QEMU) -machine virt -cpu cortex-a72 -m 128 -kernel $< -gdb tcp::11451 -nographic -singlestep -S
+
+g:
 	gdb-multiarch -n -x .gdbinit
 	# aarch64-linux-gdb -x .gdbinit
 
-clean:
+c:
 	$(RM) fs.img $K/kernel.elf $(OBJS)
+
+rr: 
+	make c
+	make a
+	make r

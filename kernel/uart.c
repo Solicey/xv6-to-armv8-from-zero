@@ -28,7 +28,7 @@ static volatile unsigned int* uart_base;
 
 void uartinit(void)
 {
-    uart_base = (unsigned int*)UART;
+    uart_base = (unsigned int*)UART0;
 
     // set the bit rate: integer/fractional baud rate registers
     uart_base[UART_IBRD] = UART_CLK / (16 * UART_BITRATE);
