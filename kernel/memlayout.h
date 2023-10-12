@@ -13,7 +13,7 @@
 #define KERN_LINK       (KERN_BASE + 0x40080000l)
 
 #define PHY_BASE        0x40000000l
-#define PHY_STOP        (PHY_BASE + 0x8000000l)
+#define PHY_STOP        (PHY_BASE + 0x8000000l)     // 128M memory
 
 #define V2P(x)          ((uint64)(x) - KERN_BASE)
 #define P2V(x)          ((uint64)(x) + KERN_BASE)    

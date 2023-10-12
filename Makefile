@@ -7,7 +7,8 @@ OBJS = \
 	$K/start.o \
 	$K/uart.o \
 	$K/kpgdir.o \
-	$K/console.o
+	$K/console.o \
+	$K/string.o
 
 TOOLPREFIX = aarch64-linux-gnu-
 
