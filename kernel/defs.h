@@ -11,6 +11,11 @@ void            consoleinit(void);
 void            cprintf(const char *fmt, ...);
 void            panic(const char *fmt, ...);
 
+// kalloc.c
+void*           kalloc(void);
+void            kinit(void);
+void            kfree(void* paddr);
+
 // string.c
 int             memcmp(const void* v1, const void* v2, uint n);
 void*           memcpy(void* dst, const void* src, uint n);
@@ -23,6 +28,17 @@ void            uartinit(void);
 void            uartputc(char c);
 void            uartputs(const char* s);
 
+// vm.c
+int             mappages(uint64* pgdir, uint64 vaddr, uint64 paddr, uint64 size, int perm);
+uint64*         walk(uint64* pgdir, uint64 vaddr, int alloc);
 
+#define         assert(x)                                           \
+({                                                                  \
+    if (!(x))                                                       \
+    {                                                               \
+        cprintf("%s:%d: assertion failed.\n", __FILE__, __LINE__);  \
+        for (;;);                                                   \
+    }                                                               \
+})
 
 #endif

@@ -2,9 +2,12 @@
 #include "types.h"
 #include "defs.h"
 
+int panicked;
+
 void consoleinit(void)
 {
     uartinit();
+    cprintf("consoleinit done!\n");
 }
 
 static void printint(int64 x, int base, int sign)
@@ -104,7 +107,8 @@ void panic(const char *fmt, ...)
     vsprintf(uartputc, fmt, ap);
     va_end(ap);
 
-    cprintf("%s:%d: kernel panic.\n", __FILE__, __LINE__);
+    cprintf("\n%s:%d: kernel panic.\n", __FILE__, __LINE__);
     cprintf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+    panicked = 1;
     for (;;);
 }

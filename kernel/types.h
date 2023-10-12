@@ -15,4 +15,6 @@ typedef short               int16;
 typedef int                 int32;
 typedef long long           int64;
 
+#define NULL                0
+
 #endif
