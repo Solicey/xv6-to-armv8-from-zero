@@ -107,8 +107,8 @@ void panic(const char *fmt, ...)
     vsprintf(uartputc, fmt, ap);
     va_end(ap);
 
-    cprintf("\n%s:%d: kernel panic.\n", __FILE__, __LINE__);
-    cprintf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+    //cprintf("\n%s:%d: kernel panic.\n", __FILE__, __LINE__);
+    cprintf("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
     panicked = 1;
     for (;;);
 }

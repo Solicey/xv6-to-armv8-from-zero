@@ -3,8 +3,10 @@
 #ifndef __KERNEL_MEM_LAYOUT_H
 #define __KERNEL_MEM_LAYOUT_H
 
+#define GIC_BASE        0x08000000l    
+
 // qemu puts UART registers here in physical memory.
-#define UART0           0x09000000l
+#define UART_BASE       0x09000000l
 
 // the kernel expects there to be RAM
 // for use by the kernel and user pages

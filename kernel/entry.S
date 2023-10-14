@@ -31,12 +31,17 @@ el1:
     ldr     x0, =(MAIR_VALUE)
     msr     mair_el1, x0
 
+    isb
+
     /* Modify System Control Register to enable MMU. */
     mrs     x0, sctlr_el1
     orr     x0, x0, #SCTLR_MMU_ENABLED 
     msr     sctlr_el1, x0
 
-    /* Set up stack pointer. */
+    isb
+
+    /* Set up stack pointer. Using sp_el1 */
+    msr     spsel, #1
     ldr     x0, =stack_top
 	ldr     x1, =(KERN_BASE)
 	add     sp, x1, x0

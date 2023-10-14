@@ -5,11 +5,17 @@
 #define __KERNEL_DEFS_H
 
 #include "types.h"
+#include "proc.h"
 
 // console.c
 void            consoleinit(void);
 void            cprintf(const char *fmt, ...);
 void            panic(const char *fmt, ...);
+
+// gic.c
+void            gicinit(void);
+void            irqhandle(struct trapframe* f);
+void            irqhset(int id, irqhandler ih);
 
 // kalloc.c
 void*           kalloc(void);
@@ -23,8 +29,13 @@ void*           memmove(void* dst, const void* src, uint n);
 void*           memset(void* dst, int c, uint n);
 int             strlen(const char* s);
 
+// timer.c
+void            timerinit(void);
+
 // uart.c
+void            uartintr(void);
 void            uartinit(void);
+void            uartirqh(struct trapframe* f, int id);
 void            uartputc(char c);
 void            uartputs(const char* s);
 

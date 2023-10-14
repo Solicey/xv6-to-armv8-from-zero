@@ -1,6 +1,8 @@
 #ifndef __KERNEL_TYPES_H
 #define __KERNEL_TYPES_H
 
+struct trapframe;
+
 typedef unsigned int        uint;
 typedef unsigned short      ushort;
 typedef unsigned char       uchar;
@@ -16,5 +18,7 @@ typedef int                 int32;
 typedef long long           int64;
 
 #define NULL                0
+
+typedef void (*irqhandler)  (struct trapframe *tf, int id);
 
 #endif

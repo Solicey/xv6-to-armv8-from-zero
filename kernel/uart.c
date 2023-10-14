@@ -1,7 +1,10 @@
 // driver for ARM PrimeCell UART (PL011)
+#include "types.h"
 #include "memlayout.h"
+#include "defs.h"
+#include "arm.h"
 
-static volatile unsigned int* uart_base = (unsigned int*)UART0;
+static volatile uint* uart_base = (uint*)UART_BASE;
 
 // https://github.com/umanovskis/baremetal-arm/blob/master/doc/06_uart.md
 #define UART_DR		    0	        // data register
@@ -18,8 +21,8 @@ static volatile unsigned int* uart_base = (unsigned int*)UART0;
 #define UART_CR_TXE	    (1 << 8)	// enable transmit
 #define	UART_CR_EN	    (1 << 0)	// enable UART
 #define UART_IMSC	    14	        // interrupt mask set/clear register
-#define UART_IMSC_RXI	(1 << 4)	// receive interrupt
-#define UART_IMSC_TXI	(1 << 5)	// transmit interrupt
+#define UART_RXI	(1 << 4)	    // receive interrupt
+#define UART_TXI	(1 << 5)	    // transmit interrupt
 #define UART_MIS	    16	        // masked interrupt status register
 #define	UART_ICR	    17	        // interrupt clear register
 
@@ -28,12 +31,12 @@ static volatile unsigned int* uart_base = (unsigned int*)UART0;
 
 void uartinit(void)
 {
-    uart_base = (unsigned int*)(UART0 + KERN_BASE);
+    uart_base = (uint*)(P2V(UART_BASE));
 
     // set the bit rate: integer/fractional baud rate registers
     uart_base[UART_IBRD] = UART_CLK / (16 * UART_BITRATE);
 
-    unsigned int left = UART_CLK % (16 * UART_BITRATE);
+    uint left = UART_CLK % (16 * UART_BITRATE);
     uart_base[UART_FBRD] = (left * 4 + UART_BITRATE / 2) / UART_BITRATE;
 
     // enable trasmit and receive
@@ -45,14 +48,28 @@ void uartinit(void)
 
 void uartputc(char c)
 {
-    uart_base[UART_DR] = (unsigned int)c;
+    uart_base[UART_DR] = (uint)c;
 }
 
 void uartputs(const char* s)
 {
     while (*s != '\0')
     {
-        uart_base[UART_DR] = (unsigned int)(*s);
+        uart_base[UART_DR] = (uint)(*s);
         s++;
     }
+}
+
+void uartintr()
+{
+    uart_base[UART_IMSC] = UART_RXI;
+    irqhset(SPI2ID(IRQ_UART0), uartirqh);
+}
+
+void uartirqh(struct trapframe* f, int id)
+{
+    if (uart_base[UART_MIS] & UART_RXI)
+        uartputc('!');
+
+    uart_base[UART_ICR] = UART_RXI | UART_TXI;
 }

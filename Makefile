@@ -10,19 +10,22 @@ OBJS = \
 	$K/console.o \
 	$K/string.o \
 	$K/kalloc.o \
-	$K/vm.o
+	$K/vm.o \
+	$K/trapasm.o \
+	$K/trap.o \
+	$K/gic.o \
+	$K/timer.o
 
 TOOLPREFIX = aarch64-linux-gnu-
 
 CC = $(TOOLPREFIX)gcc
 LD = $(TOOLPREFIX)ld
-AS = $(TOOLPREFIX)as
 OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
 
 RM = rm -f
 
-CFLAGS = -Wall -Werror -O2 -g -fno-pie -fno-pic \
+CFLAGS = -Wall -Werror -g -fno-pie -fno-pic \
 		 -mcmodel=large -march=armv8-a -mtune=cortex-a72 \
 		 -fno-stack-protector -static -fno-builtin \
 		 -nostdlib -ffreestanding -nostartfiles \
