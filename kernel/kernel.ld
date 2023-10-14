@@ -20,17 +20,15 @@ SECTIONS
     .data : {
         *(.data .data.*)
     }
-
-    . = ALIGN(16);
-    PROVIDE (data_end = .);
-
+    PROVIDE(edata = .);
     .bss : {
         *(.bss .bss.* COMMON)
     }
+    PROVIDE(ebss = .);
 
-    . = ALIGN(0x1000);
-    PROVIDE (end = .);
+    . = ALIGN(16);
+    . = . + 0x1000;     /* 4kB stack memory */
+    stack_top = .;
 
-    . = ALIGN(0x200000);
-    PROVIDE (kernel_end = .);
+    PROVIDE(end = .);
 }

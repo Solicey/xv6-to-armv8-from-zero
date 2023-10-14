@@ -1,35 +1,60 @@
 #include "memlayout.h"
+#include "mmu.h"
+#include "sysregs.h"
 
 .section .text
 .align 16
 
 .global _entry
+
 _entry:
-	// initialize stack pointers for svc modes
-	mov     x0, #1     // select SP_EL1
-	msr     spsel, x0
-	isb
+    /* Read cpu id, stop slave cores. */
+    mrs     x1, mpidr_el1
+    and     x1, x1, #3
+    cbnz    x1, halt
 
-    // MSR SPSel, #imm 
-    // A value of 0 or 1 in this register is used to select
-    // between using EL0 stack pointer or the current exception 
-    // level stack pointer
-	// 1 core stack for now
+    /* Get current exception level by CurrentEL[3:2]. */
+    mrs     x1, CurrentEL
+    and     x1, x1, #0xc
+    cmp     x1, #8
+    bl      el1
+    bge     halt
 
-	adrp    x0, stack0
-	mov     sp, x0
+el1:
+    adr     x0, kpgdir
 
-	// clear the bss section
-	ldr     x1, =data_end
-	ldr     x2, =end
-	mov     x3, #0x00
+    /* Higher and lower half map to same address. */
+    msr     ttbr0_el1, x0
+    msr     ttbr1_el1, x0
 
-1:
-	cmp     x1, x2
-	bge     2f
-	str     x3, [x1]
-	add     x1, x1, #0x08
-	blt     1b
-2:
-	bl      start
-	b       .
+    ldr     x0, =(TCR_VALUE)        
+    msr     tcr_el1, x0
+
+    ldr     x0, =(MAIR_VALUE)
+    msr     mair_el1, x0
+
+    isb
+
+    /* Modify System Control Register to enable MMU. */
+    mrs     x0, sctlr_el1
+    orr     x0, x0, #SCTLR_MMU_ENABLED 
+    msr     sctlr_el1, x0
+
+    isb
+
+    /* Set up stack pointer. Using sp_el1 */
+    msr     spsel, #1
+    ldr     x0, =stack_top
+	ldr     x1, =(KERN_BASE)
+	add     sp, x1, x0
+
+    /*
+     * Jump to C code, should not return.
+     * Why not directly run `b start`?
+     */ 
+    ldr     x1, =start
+    br      x1
+
+halt:
+    wfe
+    b       halt

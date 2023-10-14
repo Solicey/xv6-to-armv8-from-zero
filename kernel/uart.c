@@ -1,8 +1,10 @@
 // driver for ARM PrimeCell UART (PL011)
 #include "types.h"
 #include "memlayout.h"
+#include "defs.h"
+#include "arm.h"
 
-static volatile uint32* uart_base;
+static volatile uint* uart_base = (uint*)UART_BASE;
 
 // https://github.com/umanovskis/baremetal-arm/blob/master/doc/06_uart.md
 #define UART_DR		    0	        // data register
@@ -19,8 +21,8 @@ static volatile uint32* uart_base;
 #define UART_CR_TXE	    (1 << 8)	// enable transmit
 #define	UART_CR_EN	    (1 << 0)	// enable UART
 #define UART_IMSC	    14	        // interrupt mask set/clear register
-#define UART_IMSC_RXI	(1 << 4)	// receive interrupt
-#define UART_IMSC_TXI	(1 << 5)	// transmit interrupt
+#define UART_RXI	(1 << 4)	    // receive interrupt
+#define UART_TXI	(1 << 5)	    // transmit interrupt
 #define UART_MIS	    16	        // masked interrupt status register
 #define	UART_ICR	    17	        // interrupt clear register
 
@@ -31,13 +33,13 @@ uint64 uart0 = UART0;
 
 void uartinit()
 {
-    uart0 = UART0 + KERN_BASE;
-    uart_base = (uint32*)uart0;
+    uart_base = (uint*)(P2V(UART_BASE));
 
     // set the bit rate: integer/fractional baud rate registers
     uart_base[UART_IBRD] = UART_CLK / (16 * UART_BITRATE);
 
-    uint32 left = UART_CLK % (16 * UART_BITRATE);
+    uint left = UART_CLK % (16 * UART_BITRATE);
+
     uart_base[UART_FBRD] = (left * 4 + UART_BITRATE / 2) / UART_BITRATE;
 
     // enable trasmit and receive
@@ -45,48 +47,36 @@ void uartinit()
 
     // enable FIFO
     uart_base[UART_LCRH] |= UART_LCRH_FEN;
+
+    cprintf("uartinit done!\n");
 }
 
-/*void uartputc(const char* s)
+void uartputc(char c)
+{
+    uart_base[UART_DR] = (uint)c;
+}
+
+void uartputs(const char* s)
 {
     while (*s != '\0')
     {
-        uart_base[UART_DR] = (unsigned int)(*s);
-        s++;
-    }
-}*/
-
-void _uartputc(char c)
-{
-    volatile uint8* uart = (uint8*)uart0;
-    *uart = c;
-}
-
-void _putstr(char* s)
-{
-    while (*s != '\0')
-    {
-        _uartputc(*s);
+        uart_base[UART_DR] = (uint)(*s);
         s++;
     }
 }
 
-void _putint(char* prefix, uint64 val, char* suffix)
+void uartintr()
 {
-    char* map = "0123456789abcdef";
+    uart_base[UART_IMSC] = UART_RXI;
+    irqhset(SPI2ID(IRQ_UART0), uartirqh);
 
-    if (prefix)
-    {
-        _putstr(prefix);
-    }
+    cprintf("uartintr enabled!\n");
+}
 
-    for (int i = sizeof(val) * 8 - 4; i >= 0; i -= 4)
-    {
-        _uartputc(map[(val >> i) & 0x0f]);
-    }
+void uartirqh(struct trapframe* f, int id)
+{
+    if (uart_base[UART_MIS] & UART_RXI)
+        uartputc('!');
 
-    if (suffix)
-    {
-        _putstr(suffix);
-    }
+    uart_base[UART_ICR] = UART_RXI | UART_TXI;
 }

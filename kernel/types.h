@@ -1,18 +1,24 @@
-typedef unsigned int    uint;
-typedef unsigned short  ushort;
-typedef unsigned char   uchar;
+#ifndef __KERNEL_TYPES_H
+#define __KERNEL_TYPES_H
 
-typedef unsigned char   uint8;
-typedef unsigned short  uint16;
-typedef unsigned int    uint32;
-typedef unsigned long   uint64;
+struct trapframe;
 
-// pointer of page table entry
-typedef uint64*         ppte;
+typedef unsigned int        uint;
+typedef unsigned short      ushort;
+typedef unsigned char       uchar;
 
-#define true            1
-#define false           0
+typedef unsigned char       uint8;
+typedef unsigned short      uint16;
+typedef unsigned int        uint32;
+typedef unsigned long long  uint64;
 
-#ifndef NULL
-#define NULL            ((void*)0)
+typedef char                int8;
+typedef short               int16;
+typedef int                 int32;
+typedef long long           int64;
+
+#define NULL                0
+
+typedef void (*irqhandler)  (struct trapframe *tf, int id);
+
 #endif
