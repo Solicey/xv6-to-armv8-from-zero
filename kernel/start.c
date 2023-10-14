@@ -16,7 +16,6 @@ void start()
     lvbar(vectors);
     gicinit();
     uartintr();
-
     timerinit();
     sti();
 

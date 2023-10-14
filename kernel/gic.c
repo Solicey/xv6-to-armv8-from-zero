@@ -56,6 +56,7 @@ static volatile uint* gic_base;
 #define IRQ_MAX_COUNT   64
 static irqhandler       irqhs[IRQ_MAX_COUNT];
 
+// register ih to irq handler list.
 void irqhset(int id, irqhandler ih)
 {
     if (id < IRQ_MAX_COUNT)
@@ -156,6 +157,8 @@ void gicinit(void)
     spiset(IRQ_UART0, 1);
 
     group0enb();
+
+    cprintf("gicinit done!\n");
 }
 
 void irqhandle(struct trapframe* f)

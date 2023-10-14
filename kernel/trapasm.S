@@ -13,7 +13,7 @@
 .macro verror type
     .align  7
     mov     x0, \type
-    b       errorintr
+    b       errintr
 .endm
 
 .macro set_param level
@@ -194,7 +194,7 @@ el0_svc:
 
 el0_default:
 	set_param(0)
-	bl  	defaultintr
+	bl  	defintr
 	b 		.
 
 lower_el_irq:

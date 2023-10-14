@@ -39,6 +39,7 @@ static inline void lvbar(void *vaddr)
     disb();
     asm volatile("msr vbar_el1, %[x]" : : [x] "r"(vaddr) : );
     disb();
+    cprintf("load intr vector done!\n");
 }
 
 

@@ -44,6 +44,8 @@ void uartinit(void)
 
     // enable FIFO
     uart_base[UART_LCRH] |= UART_LCRH_FEN;
+
+    cprintf("uartinit done!\n");
 }
 
 void uartputc(char c)
@@ -64,6 +66,8 @@ void uartintr()
 {
     uart_base[UART_IMSC] = UART_RXI;
     irqhset(SPI2ID(IRQ_UART0), uartirqh);
+
+    cprintf("uartintr enabled!\n");
 }
 
 void uartirqh(struct trapframe* f, int id)

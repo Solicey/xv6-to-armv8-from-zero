@@ -31,6 +31,7 @@ int             strlen(const char* s);
 
 // timer.c
 void            timerinit(void);
+void            timerirqh(struct trapframe* f, int id);
 
 // uart.c
 void            uartintr(void);
