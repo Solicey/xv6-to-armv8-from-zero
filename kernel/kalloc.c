@@ -67,5 +67,4 @@ void* kalloc(void)
     }
 
     return (void*)r;
-
 }

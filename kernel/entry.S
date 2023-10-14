@@ -3,6 +3,8 @@
 #include "sysregs.h"
 
 .section .text
+.align 16
+
 .global _entry
 
 _entry:

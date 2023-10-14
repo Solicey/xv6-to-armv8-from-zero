@@ -29,7 +29,9 @@ static volatile uint* uart_base = (uint*)UART_BASE;
 #define UART_BITRATE    19200
 #define UART_CLK        24000000 
 
-void uartinit(void)
+uint64 uart0 = UART0;
+
+void uartinit()
 {
     uart_base = (uint*)(P2V(UART_BASE));
 
@@ -37,6 +39,7 @@ void uartinit(void)
     uart_base[UART_IBRD] = UART_CLK / (16 * UART_BITRATE);
 
     uint left = UART_CLK % (16 * UART_BITRATE);
+
     uart_base[UART_FBRD] = (left * 4 + UART_BITRATE / 2) / UART_BITRATE;
 
     // enable trasmit and receive

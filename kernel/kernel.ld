@@ -4,9 +4,17 @@ ENTRY(_entry)
 SECTIONS
 {
     . = 0x40080000;
+    PROVIDE (text_start = .);
 
     .text : {
         *(.text .text.*)
+        . = ALIGN(0x1000);
+        PROVIDE (text_end = .);
+    }
+    
+    .rodata : {
+        . = ALIGN(16);
+        *(.rodata .rodata.*)
     }
 
     .data : {
@@ -14,7 +22,7 @@ SECTIONS
     }
     PROVIDE(edata = .);
     .bss : {
-        *(.bss COMMON)
+        *(.bss .bss.* COMMON)
     }
     PROVIDE(ebss = .);
 

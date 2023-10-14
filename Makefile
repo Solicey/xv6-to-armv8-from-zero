@@ -16,6 +16,7 @@ OBJS = \
 	$K/gic.o \
 	$K/timer.o
 
+
 TOOLPREFIX = aarch64-linux-gnu-
 
 CC = $(TOOLPREFIX)gcc
@@ -30,6 +31,7 @@ CFLAGS = -Wall -Werror -g -fno-pie -fno-pic \
 		 -fno-stack-protector -static -fno-builtin \
 		 -nostdlib -ffreestanding -nostartfiles \
 		 -mgeneral-regs-only -MMD -MP -Iinc
+
 LDFLAGS = -L. -z max-page-size=4096
 ASFLAGS = -march=armv8-a
 

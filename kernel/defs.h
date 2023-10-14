@@ -33,6 +33,16 @@ int             strlen(const char* s);
 void            timerinit(void);
 void            timerirqh(struct trapframe* f, int id);
 
+#include "types.h"
+
+// kalloc.c
+void*           kalloc(void);
+void            kfree(void*);
+void            kinit(void);
+
+// string.c
+void*           memset(void*, int, uint);
+
 // uart.c
 void            uartintr(void);
 void            uartinit(void);
@@ -52,5 +62,6 @@ uint64*         walk(uint64* pgdir, uint64 vaddr, int alloc);
         for (;;);                                                   \
     }                                                               \
 })
+
 
 #endif
