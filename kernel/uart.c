@@ -29,7 +29,7 @@ static volatile uint* uart_base = (uint*)UART_BASE;
 #define UART_BITRATE    19200
 #define UART_CLK        24000000 
 
-uint64 uart0 = UART0;
+uint64 uart0 = UART_BASE;
 
 void uartinit()
 {

@@ -2,6 +2,7 @@
 #define __KERNEL_ARM_H
 
 #include "types.h"
+#include "defs.h"
 
 /* ARCH_TIMER_NS_EL1_IRQ */
 #define IRQ_TIMER0      14
