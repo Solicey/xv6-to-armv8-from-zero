@@ -1,9 +1,13 @@
 #include "defs.h"
 #include "mmu.h"
 #include "arm.h"
+#include "virt.h"
 
 extern char edata[], ebss[], vectors[];
 extern uint64 kpgdir[];
+
+// entry.S needs one stack per CPU.
+__attribute__((aligned(16))) char kstack[KSTACK_SIZE];
 
 void start()
 {

@@ -4,6 +4,7 @@
 #include "memlayout.h"
 #include "defs.h"
 #include "arm.h"
+#include "virt.h"
 
 static volatile uint* gic_base;
 
@@ -110,22 +111,19 @@ static void cpu0set(int id)
     GICD_REG(GICD_ITARGETSR, offset) = val;
 }
 
-static void distset(int id, int isedge)
+static void spiset(int spi, int isedge)
 {
+    int id = SPI2ID(spi);
     cfgset(id, isedge);
     enbset(id);
     cpu0set(id);
-    // default group 0
-}
-
-static void spiset(int spi, int isedge)
-{
-    distset(SPI2ID(spi), isedge);
 }
 
 static void ppiset(int ppi, int isedge)
 {
-    distset(PPI2ID(ppi), isedge);
+    int id = PPI2ID(ppi);
+    cfgset(id, isedge);
+    enbset(id);
 }
 
 // enable group 0

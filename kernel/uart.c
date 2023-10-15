@@ -3,6 +3,7 @@
 #include "memlayout.h"
 #include "defs.h"
 #include "arm.h"
+#include "virt.h"
 
 static volatile uint* uart_base = (uint*)UART_BASE;
 

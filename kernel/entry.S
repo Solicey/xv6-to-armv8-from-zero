@@ -1,12 +1,13 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "sysregs.h"
+#include "virt.h"
 
 .section .text
 .global _entry
 
 _entry:
-    /* Read cpu id, stop slave cores. */
+    /* Read cpu id */
     mrs     x1, mpidr_el1
     and     x1, x1, #3
     cbnz    x1, halt
@@ -40,12 +41,37 @@ el1:
 
     isb
 
+    /* Read cpu id */
+    mrs     x0, mpidr_el1
+    and     x0, x0, #3
+
     /* Set up stack pointer. Using sp_el1 */
     msr     spsel, #1
-    ldr     x0, =stack_top
+    ldr     x2, =kstack
+    add     x2, x2, #KSTACK_SIZE
+    mov     x1, #PG_SIZE
+    mul     x1, x1, x0
+    sub     x2, x2, x1
 	ldr     x1, =(KERN_BASE)
-	add     sp, x1, x0
+	add     sp, x1, x2
 
+    cbnz    x0, to_start
+
+cpu_enb:
+    /* Enable cpu 1 & 2 */
+    ldr     x0, =(PSCI_CPU_ON)
+    mov     x1, #1
+    ldr     x2, =(PHY_LINK)
+    mov     x3, #0
+    hvc     #0
+    
+    ldr     x0, =(PSCI_CPU_ON)
+    mov     x1, #2
+    ldr     x2, =(PHY_LINK)
+    mov     x3, #0
+    hvc     #0
+
+to_start:
     /*
      * Jump to C code, should not return.
      * Why not directly run `b start`?

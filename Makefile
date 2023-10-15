@@ -53,17 +53,22 @@ fs.img: $K/kernel.elf
 
 # .PRECIOUS: %.o
 
+NCPU = 3
+QEMURUN = $(QEMU) -machine virt  \
+		-cpu cortex-a72 -m 128 \
+		-smp $(NCPU) -kernel $< -nographic 
+
 r: fs.img
-	$(QEMU) -machine virt -cpu cortex-a72 -m 128 -kernel $< -nographic
+	$(QEMURUN)
 
 hh: fs.img
-	$(QEMU) -machine virt -cpu cortex-a72 -m 128 -kernel $< -nographic -monitor telnet:127.0.0.1:9191,server,nowait
+	$(QEMURUN) -monitor telnet:127.0.0.1:9191,server,nowait
 
 gg: 
 	telnet 127.0.0.1 9191
 
 h: fs.img
-	$(QEMU) -machine virt -cpu cortex-a72 -m 128 -kernel $< -gdb tcp::11451 -nographic -singlestep -S
+	$(QEMURUN) -gdb tcp::11451 -singlestep -S
 
 g:
 	gdb-multiarch -n -x .gdbinit
@@ -76,3 +81,7 @@ rr:
 	make c
 	make a
 	make r
+
+dtb:
+	$(QEMU) -machine virt,dumpdtb=dump.dtb -cpu cortex-a72 -m 128 -smp $(NCPU)
+	dtc -o dump.dts -O dts -I dtb dump.dtb
