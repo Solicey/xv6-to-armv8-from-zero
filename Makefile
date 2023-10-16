@@ -14,7 +14,8 @@ OBJS = \
 	$K/trapasm.o \
 	$K/trap.o \
 	$K/gic.o \
-	$K/timer.o
+	$K/timer.o \
+	$K/spinlock.o
 
 TOOLPREFIX = aarch64-linux-gnu-
 

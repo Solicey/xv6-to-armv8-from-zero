@@ -6,11 +6,14 @@
 
 #include "types.h"
 #include "proc.h"
+#include "spinlock.h"
+#include "arm.h"
 
 // console.c
+void            check_assertion(void);
 void            consoleinit(void);
 void            cprintf(const char *fmt, ...);
-void            panic(const char *fmt, ...);
+//void          panic(const char *fmt, ...);
 
 // gic.c
 void            gicinit(void);
@@ -21,6 +24,13 @@ void            irqhset(int id, irqhandler ih);
 void*           kalloc(void);
 void            kinit(void);
 void            kfree(void* paddr);
+
+// proc.c
+struct cpu*     mycpu(void);
+
+// spinlock.c
+void            acquire(struct spinlock* lk);
+void            release(struct spinlock* lk);
 
 // string.c
 int             memcmp(const void* v1, const void* v2, uint n);
@@ -48,7 +58,8 @@ uint64*         walk(uint64* pgdir, uint64 vaddr, int alloc);
 ({                                                                  \
     if (!(x))                                                       \
     {                                                               \
-        cprintf("%s:%d: assertion failed.\n", __FILE__, __LINE__);  \
+        check_assertion();                                          \
+        cprintf("%s:%d: assertion failed at cpu %d.\n", __FILE__, __LINE__, cpuid());  \
         for (;;);                                                   \
     }                                                               \
 })

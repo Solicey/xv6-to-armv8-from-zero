@@ -41,8 +41,7 @@ void kfree(void* paddr)
 {
     struct run* r;
 
-    if (((uint64)paddr % PG_SIZE) != 0 || (char*)paddr < KERN_BASE + end || (uint64)paddr >= KERN_BASE + PHY_STOP)
-        panic("kfree");
+    assert(!(((uint64)paddr % PG_SIZE) != 0 || (char*)paddr < KERN_BASE + end || (uint64)paddr >= KERN_BASE + PHY_STOP));
 
     // ?? fill with junks?
     //memset(paddr, 1, PG_SIZE);

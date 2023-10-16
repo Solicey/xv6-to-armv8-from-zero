@@ -27,8 +27,13 @@ static inline void lvbar(void *vaddr)
     disb();
     asm volatile("msr vbar_el1, %[x]" : : [x] "r"(vaddr) : );
     disb();
-    cprintf("load intr vector done!\n");
 }
 
+static inline int cpuid()
+{
+    int64 id;
+    asm volatile("mrs %[x], mpidr_el1" : [x] "=r"(id) : : );
+    return id & 0xff;
+}
 
 #endif

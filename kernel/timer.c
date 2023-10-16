@@ -21,6 +21,6 @@ void timerinit()
 
 void timerirqh(struct trapframe* f, int id)
 {
-    cprintf("timer!\n");
+    cprintf("timer! hart %d\n", cpuid());
     asm volatile("msr cntp_tval_el0, %[x]" : : [x] "r"(timerfq) : );
 }

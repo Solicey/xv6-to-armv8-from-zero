@@ -2,6 +2,7 @@
 #define __KERNEL_PROC_H
 
 #include "types.h"
+#include "virt.h"
 
 struct trapframe
 {
@@ -40,5 +41,17 @@ struct trapframe
     uint64    pc;       // user mode pc (elr)
     uint64    spsr;
 };
+
+struct context
+{
+
+};
+
+struct cpu
+{
+    struct context context;
+};
+
+extern struct cpu cpus[NCPU];
 
 #endif

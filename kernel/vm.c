@@ -51,8 +51,7 @@ int mappages(uint64* pgdir, uint64 vaddr, uint64 paddr, uint64 size, int perm)
     uint64 a, last;
     uint64* pte;
 
-    if (size == 0)
-        panic("mappages: size");
+    assert(size);
 
     a = PG_ROUND_DOWN(vaddr);
     last = PG_ROUND_DOWN(vaddr + size - 1);
@@ -64,10 +63,8 @@ int mappages(uint64* pgdir, uint64 vaddr, uint64 paddr, uint64 size, int perm)
             return -1;
         }
 
-        if (*pte & MM_TYPE_VALID)
-        {
-            panic("mappages: remap");
-        }
+        // remapping
+        assert(!(*pte & MM_TYPE_VALID));
 
         *pte = (paddr & PG_ADDR_MASK) | perm | PTE_PAGE;
 

@@ -1,8 +1,11 @@
 #include <stdarg.h>
 #include "types.h"
 #include "defs.h"
+#include "arm.h"
 
-int panicked;
+static struct spinlock conslock;
+//int panicked;
+static int assertion_failed = -1;
 
 void consoleinit(void)
 {
@@ -92,13 +95,34 @@ void vsprintf(void (*putc)(char), const char *fmt, va_list ap)
 void cprintf(const char *fmt, ...)
 {
     va_list ap;
+    acquire(&conslock);
+    if (assertion_failed >= 0 && assertion_failed != cpuid())
+    {
+        release(&conslock);
+        for (;;);
+    }
 
     va_start(ap, fmt);
     vsprintf(uartputc, fmt, ap);
     va_end(ap);
+
+    release(&conslock);
 }
 
-void panic(const char *fmt, ...)
+void check_assertion()
+{
+    acquire(&conslock);
+    if (assertion_failed < 0)
+        assertion_failed = cpuid();
+    else
+    {
+        release(&conslock);
+        for (;;);
+    }
+    release(&conslock);
+}
+
+/*void panic(const char *fmt, ...)
 {
     va_list ap;
 
@@ -111,4 +135,4 @@ void panic(const char *fmt, ...)
     cprintf("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
     panicked = 1;
     for (;;);
-}
+}*/

@@ -7,17 +7,42 @@
 .global _entry
 
 _entry:
-    /* Read cpu id */
-    mrs     x1, mpidr_el1
-    and     x1, x1, #3
-    cbnz    x1, halt
-
     /* Get current exception level by CurrentEL[3:2]. */
     mrs     x1, CurrentEL
     and     x1, x1, #0xc
     cmp     x1, #8
-    bl      el1
-    bge     halt
+    beq     el2
+    bgt     el3
+    b       el1
+
+el3:
+    mov     x9, #SCR_VALUE
+    msr     scr_el3, x9
+    mov     x9, #SPSR_EL3_VALUE
+    msr     spsr_el3, x9
+    adr     x9, el2
+    msr     elr_el3, x9
+    eret
+
+el2:
+    /*
+     * HCR_EL2.RW, bit[31] = 1: The Execution state for EL1 is AArch64.
+     * The Execution state for EL0 is determined by the current
+     * value of PSTATE.nRW when executing at EL0.
+     */
+    mov     x9, #HCR_VALUE
+    msr     hcr_el2, x9
+
+    /* Setup SCTLR access. */
+    ldr     x9, =SCTLR_VALUE_MMU_DISABLED
+    msr     sctlr_el1, x9
+
+    /* Change execution level to EL1. */
+    mov     x9, #SPSR_EL2_VALUE
+    msr     spsr_el2, x9
+    adr     x9, el1
+    msr     elr_el2, x9
+    eret
 
 el1:
     adr     x0, kpgdir
@@ -79,6 +104,6 @@ to_start:
     ldr     x1, =start
     br      x1
 
-halt:
+spin:
     wfe
-    b       halt
+    b       spin
