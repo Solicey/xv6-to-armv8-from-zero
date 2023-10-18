@@ -2,9 +2,11 @@
 #include "memlayout.h"
 #include "defs.h"
 #include "mmu.h"
+#include "spinlock.h"
 
 void freerange(void* pa_start, void* pa_end);
 
+// kernel.ld
 extern char end[];
 
 struct run
@@ -14,12 +16,14 @@ struct run
 
 struct
 {
+    struct spinlock lock;
     struct run* freelist;
 } kmem;
 
-void kinit()
+void kinit(void)
 {
-    freerange(KERN_BASE + end, (void*)(KERN_BASE + PHY_STOP));
+    initlock(&kmem.lock, "kmem");
+    freerange(end, (void*)(KERN_BASE + PHY_STOP));
     cprintf("kinit done!\n");
 }
 
@@ -47,8 +51,11 @@ void kfree(void* paddr)
     //memset(paddr, 1, PG_SIZE);
 
     r = (struct run*)paddr;
+
+    acquire(&kmem.lock);
     r->next = kmem.freelist;
     kmem.freelist = r;
+    release(&kmem.lock);
 }
 
 // Allocate one 4096-byte page of physical memory.
@@ -58,13 +65,13 @@ void* kalloc(void)
 {
     struct run* r;
 
+    acquire(&kmem.lock);
     r = kmem.freelist;
     if (r)
-    {
         kmem.freelist = r->next;
-        // ?? fill with junk?
-    }
+    release(&kmem.lock);
 
+    if (r)
+        memset(r, 5, PG_SIZE);
     return (void*)r;
-
 }

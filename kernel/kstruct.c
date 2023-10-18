@@ -177,3 +177,6 @@ uint64 kpgdir[512] =
 {
     (uint64)kpud + PDE_TABLE
 };
+
+__attribute__((__aligned__(16)))
+char kstack[KSTACK_SIZE];

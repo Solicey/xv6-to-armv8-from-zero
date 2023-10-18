@@ -48,5 +48,6 @@
 #define PX_MASK                 0x1ff // 9 bits
 #define PX_OFFSET(level)        (PG_OFFSET + (9 * (3 - level)))
 #define PX(level, vaddr)        ((((uint64)(vaddr)) >> PX_OFFSET(level)) & PX_MASK)
+#define PX_ENTRY_CNT            512
 
 #endif

@@ -4,7 +4,6 @@
 #include "virt.h"
 
 .section .text
-.global _entry
 
 _entry:
     /* Get current exception level by CurrentEL[3:2]. */

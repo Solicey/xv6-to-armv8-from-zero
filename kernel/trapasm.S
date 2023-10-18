@@ -201,3 +201,8 @@ lower_el_irq:
 	set_param(0)
 	bl 		irqintr
 	b 		el0_load_trap_frame_and_ret
+
+
+.global trapret
+trapret:
+	b 		el0_load_trap_frame_and_ret

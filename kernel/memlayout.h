@@ -3,6 +3,9 @@
 #ifndef __KERNEL_MEM_LAYOUT_H
 #define __KERNEL_MEM_LAYOUT_H
 
+#include "mmu.h"
+#include "virt.h"
+
 #define GIC_BASE        0x08000000l    
 
 // qemu puts UART registers here in physical memory.
@@ -20,5 +23,8 @@
 
 #define V2P(x)          ((uint64)(x) - KERN_BASE)
 #define P2V(x)          ((uint64)(x) + KERN_BASE)    
+
+// size of initial kernel stack
+#define KSTACK_SIZE     PG_SIZE * NCPU
 
 #endif

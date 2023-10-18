@@ -9,6 +9,7 @@ static int assertion_failed = -1;
 
 void consoleinit(void)
 {
+    initlock(&conslock, "console");
     uartinit();
     cprintf("consoleinit done!\n");
 }
@@ -109,7 +110,7 @@ void cprintf(const char *fmt, ...)
     release(&conslock);
 }
 
-void check_assertion()
+void check_assertion(void)
 {
     acquire(&conslock);
     if (assertion_failed < 0)

@@ -1,17 +1,40 @@
 OUTPUT_ARCH(aarch64)
-ENTRY(_entry)
 
 SECTIONS
 {
     . = 0x40080000;
 
-    .text : {
+    .entry_s : {
+        kernel/entry.o(.text .text.*)
+        kernel/entry.o(.data .data.*)
+        kernel/entry.o(.bss .bss.* COMMON)
+        kernel/kstruct.o(.text .text.*)
+        kernel/kstruct.o(.data .data.*)
+        kernel/kstruct.o(.bss .bss.* COMMON)
+    }
+
+    .user_s : {
+        user/initcode(.text .text.*)
+        user/initcode(.data .data.*)
+        user/initcode(.bss .bss.* COMMON)
+    }
+
+    . = ALIGN(0x1000);
+    PROVIDE(euser = .);
+    . += 0xffff000000000000;
+
+    .text : AT(euser) {
         *(.text .text.*)
+    }
+
+    .rodata : {
+        *(.rodata .rodata.*)
     }
 
     .data : {
         *(.data .data.*)
     }
+
     PROVIDE(edata = .);
     .bss : {
         *(.bss COMMON)

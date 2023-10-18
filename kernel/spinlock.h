@@ -2,7 +2,8 @@
 #define __KERNEL_SPINLOCK_H
 
 #include "types.h"
-#include "proc.h"
+
+struct cpu;
 
 struct spinlock
 {

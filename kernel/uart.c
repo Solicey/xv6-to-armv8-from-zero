@@ -63,7 +63,7 @@ void uartputs(const char* s)
     }
 }
 
-void uartintr()
+void uartintr(void)
 {
     uart_base[UART_IMSC] = UART_RXI;
     irqhset(SPI2ID(IRQ_UART0), uartirqh);

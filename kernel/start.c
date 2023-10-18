@@ -6,11 +6,6 @@
 extern char edata[], ebss[], vectors[];
 extern uint64 kpgdir[];
 
-// entry.S needs one stack per CPU.
-__attribute__((aligned(16))) char kstack[KSTACK_SIZE];
-
-struct cpu cpus[NCPU];
-
 volatile static int started = 0;
 void start()
 {
@@ -31,7 +26,12 @@ void start()
         gicinit();
         uartintr();
         timerinit();
-        sti();
+        intr_on();
+
+        procinit();
+        userinit();
+
+        scheduler();
 
         __sync_synchronize();
         started = 1;
@@ -42,12 +42,11 @@ void start()
         while (started == 0);
         __sync_synchronize();
         cprintf("hart %d starting\n", cpuid());
-
+        //assert(0);
         lvbar(vectors);
         gicinit();
-        uartintr();
         timerinit();
-        sti();
+        intr_on();
 
         for (;;);
     }

@@ -2,8 +2,7 @@
 #define __KERNEL_VIRT_H
 #include "mmu.h"
 
-#define NCPU            4
-#define KSTACK_SIZE     PG_SIZE * NCPU       
+#define NCPU            4  
 #define PSCI_CPU_ON     0xc4000003
 
 /* ARCH_TIMER_NS_EL1_IRQ */

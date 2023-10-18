@@ -39,4 +39,7 @@
 #define ESR_ELx_EC_SVC64                0x15
 #define ESR_ELx_EC_DABT_LOW             0x24
 
+// PSTATE
+#define DAIF_I                          (1 << 7)
+
 #endif
