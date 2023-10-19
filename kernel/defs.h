@@ -31,6 +31,7 @@ struct proc*    myproc(void);
 void            procinit(void);
 void            scheduler(void);
 void            userinit(void);
+void            yield(void);
 
 // spinlock.c
 void            acquire(struct spinlock* lk);

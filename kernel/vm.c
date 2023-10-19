@@ -19,7 +19,7 @@ uint64* walk(uint64* pde, uint64 vaddr, int alloc)
 {
     for (int level = 0; level < 3; level++)
     {
-        cprintf("level: %d\n", level);
+        //cprintf("level: %d\n", level);
         uint64* pte = &pde[PX(level, vaddr)];
         if ((*pte & MM_TYPE_TABLE) == MM_TYPE_TABLE)
         {
@@ -33,7 +33,7 @@ uint64* walk(uint64* pde, uint64 vaddr, int alloc)
         {
             if (!alloc || (pde = (uint64*)kalloc()) == 0)
                 return 0;
-            cprintf("new pde: 0x%p\n", pde);
+            //cprintf("new pde: 0x%p\n", pde);
             memset(pde, 0, PG_SIZE);
             *pte = V2P((uint64)pde) | MM_TYPE_TABLE;
         }
@@ -59,7 +59,7 @@ int mappages(uint64* pde, uint64 vaddr, uint64 paddr, uint64 size, int perm)
     last = PG_ROUND_DOWN(vaddr + size - 1);
     for (;;)
     {
-        cprintf("pde: 0x%p, a: 0x%p\n", pde, a);
+        //cprintf("pde: 0x%p, a: 0x%p\n", pde, a);
         if ((pte = walk(pde, a, 1)) == NULL)
         {
             cprintf("mappages: walk failed");

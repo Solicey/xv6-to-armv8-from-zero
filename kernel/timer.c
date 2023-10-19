@@ -20,4 +20,8 @@ void timerirqh(struct trapframe* f, int id)
 {
     cprintf("timer! hart %d\n", cpuid());
     asm volatile("msr cntp_tval_el0, %[x]" : : [x] "r"(timerfq) : );
+    // give up cpu
+    struct proc* p = myproc();
+    if (p && p->state == RUNNING)
+        yield();
 }

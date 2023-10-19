@@ -13,12 +13,16 @@ SECTIONS
         kernel/kstruct.o(.bss .bss.* COMMON)
     }
 
-    .user_s : {
+    . = ALIGN(0x1000);
+    PROVIDE(eentry = .);
+    . = . - eentry;
+    .user_s : AT(eentry) {
         user/initcode(.text .text.*)
         user/initcode(.data .data.*)
         user/initcode(.bss .bss.* COMMON)
     }
 
+    . = . + eentry;
     . = ALIGN(0x1000);
     PROVIDE(euser = .);
     . += 0xffff000000000000;

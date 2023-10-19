@@ -5,13 +5,15 @@
 
 uint64 sys_exec(void)
 {
-    /*char path[MAXPATH], *argv[MAXARG];
+    char path[MAXPATH], *argv[MAXARG];
     int i;
     uint64 uargv, uarg;
 
     argaddr(2, &uargv);
+    cprintf("exec uargv: 0x%p\n", uargv);
     if (argstr(1, path, MAXPATH) < 0)
         return -1;
+    cprintf("exec path: %s\n", path);
 
     memset(argv, 0, sizeof(argv));
     for (i = 0; ; i++)
@@ -30,21 +32,20 @@ uint64 sys_exec(void)
             goto bad;
         if (fetchstr(uarg, argv[i], PG_SIZE) < 0)
             goto bad;
-        //cprintf("exec argv[%d]: %s\n", i, argv[i]);
-        uartputs(argv[i]);
-    }*/
+        cprintf("   exec argv[%d]: %s\n", i, argv[i]);
+    }
 
     // TODO: exec
     int ret = 0;
-    cprintf("exec!\n");
+    cprintf("exec get ret!\n");
 
-    /*for (i = 0; i < NELEM(argv) && argv[i] != 0; i++)
-        kfree(argv[i]);*/
+    for (i = 0; i < NELEM(argv) && argv[i] != 0; i++)
+        kfree(argv[i]);
 
     return ret;
 
-    /*bad:
-        for (i = 0; i < NELEM(argv) && argv[i] != 0; i++)
-            kfree(argv[i]);
-        return -1;*/
+bad:
+    for (i = 0; i < NELEM(argv) && argv[i] != 0; i++)
+        kfree(argv[i]);
+    return -1;
 }

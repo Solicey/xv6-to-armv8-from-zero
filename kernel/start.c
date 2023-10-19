@@ -31,10 +31,10 @@ void start()
         procinit();
         userinit();
 
-        scheduler();
-
         __sync_synchronize();
         started = 1;
+
+        scheduler();
         for (;;);
     }
     else

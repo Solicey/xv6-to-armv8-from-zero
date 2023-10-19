@@ -6,6 +6,8 @@
 #include "spinlock.h"
 #include "memlayout.h"
 
+extern char eentry[];
+
 struct cpu cpus[NCPU];
 struct proc proc[NPROC];
 
@@ -188,7 +190,9 @@ void userinit(void)
     assert(p->pagetable = kalloc());
     memset(p->pagetable, 0, PG_SIZE);
 
-    uvmfirst(p->pagetable, _binary_initcode_start, (uint64)_binary_initcode_size);
+    uint64 initcode_s = (uint64)eentry + (uint64)_binary_initcode_start + KERN_BASE;
+    cprintf("initcode_s: 0x%p\n", initcode_s);
+    uvmfirst(p->pagetable, (char*)initcode_s, (uint64)_binary_initcode_size);
 
     p->sz = PROC_KSTACK_SIZE;
 
@@ -265,4 +269,46 @@ void scheduler(void)
             release(&p->lock);
         }
     }
+}
+
+// Switch to scheduler.  Must hold only p->lock
+// and have changed proc->state. Saves and restores
+// intena because intena is a property of this
+// kernel thread, not this CPU. It should
+// be proc->intena and proc->noff, but that would
+// break in the few places where a lock is held but
+// there's no process.
+void sched(void)
+{
+    int intena;
+    struct proc *p = myproc();
+
+    assert(holding(&p->lock));
+    assert(mycpu()->noff == 1);
+    assert(p->state != RUNNING);
+    assert(!intr_get());    // sched should not be interruptable
+
+    intena = mycpu()->intena;
+    swtch(&p->context, &mycpu()->context);
+    mycpu()->intena = intena;
+}
+
+// Exit the current process.  Does not return.
+// An exited process remains in the zombie state
+// until its parent calls wait().
+/*void exit(int status)
+{
+    struct proc* p = myproc();
+
+}*/
+
+// Give up the CPU for one scheduling round.
+void yield(void)
+{
+    struct proc* p = myproc();
+    cprintf("proc %d yield!\n", p->pid);
+    acquire(&p->lock);
+    p->state = RUNNABLE;
+    sched();
+    release(&p->lock);
 }
