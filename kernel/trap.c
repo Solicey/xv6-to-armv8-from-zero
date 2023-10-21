@@ -21,12 +21,12 @@ void irqintr(struct trapframe* f, uint32 el, uint32 esr)
 {
     struct proc* p = myproc();
 
-    if (p != NULL)
+    if (p != NULL && el == 0)   // from lower el
     {
         p->trapframe = f;
     }
 
-    irqhandle(f);
+    irqhandle(f, el);
 }
 
 void errintr(uint64 type)

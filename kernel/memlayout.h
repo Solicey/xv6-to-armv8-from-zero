@@ -11,8 +11,10 @@
 // qemu puts UART registers here in physical memory.
 #define UART_BASE       0x09000000l
 
+#define MMIO_BASE       0x0a000000l
+
 #define PHY_BASE        0x40000000l
-#define PHY_LINK        0x40080000l
+#define PHY_LINK        (PHY_BASE + 0x0l)
 #define PHY_STOP        (PHY_BASE + 0x8000000l)     // 128M memory
 
 // the kernel expects there to be RAM

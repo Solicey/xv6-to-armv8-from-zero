@@ -4,7 +4,7 @@
 #include "arm.h"
 
 static struct spinlock conslock;
-//int panicked;
+//static int panicked = -1;
 static int assertion_failed = -1;
 
 void consoleinit(void)

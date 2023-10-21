@@ -1,8 +1,9 @@
 OUTPUT_ARCH(aarch64)
+ENTRY(_entry)
 
 SECTIONS
 {
-    . = 0x40080000;
+    . = 0x40000000;
 
     .entry_s : {
         kernel/entry.o(.text .text.*)

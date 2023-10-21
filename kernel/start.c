@@ -24,9 +24,11 @@ void start()
 
         lvbar(vectors);
         gicinit();
-        uartintr();
+        uartsti();
         timerinit();
-        intr_on();
+
+        binit();
+        virtio_disk_init();
 
         procinit();
         userinit();
@@ -44,7 +46,6 @@ void start()
         cprintf("hart %d starting\n", cpuid());
         //assert(0);
         lvbar(vectors);
-        gicinit();
         timerinit();
         intr_on();
 

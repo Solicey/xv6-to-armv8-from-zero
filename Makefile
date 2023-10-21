@@ -21,7 +21,11 @@ OBJS = \
 	$K/swtch.o \
 	$K/syscall.o \
 	$K/sysproc.o \
-	$K/sysfile.o
+	$K/sysfile.o \
+	$K/bio.o \
+	$K/sleeplock.o \
+	$K/virtio_disk.o \
+	$K/fs.o
 
 TOOLPREFIX = aarch64-linux-gnu-
 
@@ -44,14 +48,16 @@ ASFLAGS = -march=armv8-a
 
 .PHONY: all
 
+all: fs.img mkfs/mkfs
+
 a: fs.img
 
-$K/kernel.elf: $(OBJS) Makefile $K/kernel.ld $U/initcode
+$K/kernel: $(OBJS) Makefile $K/kernel.ld $U/initcode
 	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $@ $(OBJS) $U/initcode
 	$(OBJDUMP) -S $@ > $K/kernel.asm
 	$(OBJDUMP) -x $@ > $K/kernel.hdr
 
-fs.img: $K/kernel.elf
+fs.img: $K/kernel
 	$(OBJCOPY) -O binary $< $@
 
 $K/%.o: $K/%.S
@@ -71,23 +77,31 @@ $U/initcode: $U/initcode.S
 	$(OBJDUMP) -S $@ > $U/initcode.asm
 	$(OBJDUMP) -x $@ > $U/initcode.hdr
 
+mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
+	gcc -Werror -Wall -Ikernel -o $@ $<
+
 # .PRECIOUS: %.o
 
 NCPU = 3
 QEMURUN = $(QEMU) -machine virt  \
 		-cpu cortex-a72 -m 128 \
-		-smp $(NCPU) -kernel $< -nographic 
+		-smp $(NCPU) -kernel $K/kernel -nographic \
+		$(QEMUDISK)
+		
+QEMUDISK = -drive file=fs.img,if=none,format=raw,id=x0 \
+		-device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0 \
+		-global virtio-mmio.force-legacy=false
 
-r: fs.img
+r: $K/kernel fs.img
 	$(QEMURUN)
 
-hh: fs.img
+hh: $K/kernel fs.img
 	$(QEMURUN) -monitor telnet:127.0.0.1:9191,server,nowait
 
 gg: 
 	telnet 127.0.0.1 9191
 
-h: fs.img
+h: $K/kernel fs.img
 	$(QEMURUN) -gdb tcp::11451 -singlestep -S
 
 g:
@@ -95,13 +109,19 @@ g:
 	# aarch64-linux-gdb -x .gdbinit
 
 c:
-	$(RM) fs.img $K/kernel.elf $(OBJS) $U/initcode.o $U/initcode.out $U/initcode
+	$(RM) fs.img $K/kernel $(OBJS) \
+	$U/initcode.o $U/initcode.out $U/initcode \
+	mkfs/mkfs
 
 rr: 
 	make c
 	make a
 	make r
 
-dtb:
-	$(QEMU) -machine virt,dumpdtb=dump.dtb -cpu cortex-a72 -m 128 -smp $(NCPU)
+dt:
+	$(QEMU) -machine virt,dumpdtb=dump.dtb \
+			-cpu cortex-a72 -m 128 -smp $(NCPU) \
+			$(QEMUDISK)
 	dtc -o dump.dts -O dts -I dtb dump.dtb
+
+fs: mkfs/mkfs

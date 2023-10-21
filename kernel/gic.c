@@ -55,17 +55,18 @@ static volatile uint* gic_base;
 
 
 #define IRQ_MAX_COUNT   64
-static irqhandler       irqhs[IRQ_MAX_COUNT];
+static intrhandler      intrs[IRQ_MAX_COUNT];
 
 // register ih to irq handler list.
-void irqhset(int id, irqhandler ih)
+void intrset(int id, intrhandler ih)
 {
+    cprintf("intrset! id: %d\n", id);
     if (id < IRQ_MAX_COUNT)
-        irqhs[id] = ih;
+        intrs[id] = ih;
 }
 
 // default irq handler
-static void defirqh(struct trapframe* f, int id)
+static void defintr(struct trapframe* f, int id)
 {
     cprintf("unhandled interrupt!\n");
 }
@@ -74,7 +75,7 @@ static void irqhinit()
 {
     for (int i = 0; i < IRQ_MAX_COUNT; i++)
     {
-        irqhs[i] = defirqh;
+        intrs[i] = defintr;
     }
 }
 
@@ -152,16 +153,17 @@ void gicinit(void)
     irqhinit();
 
     ppiset(IRQ_TIMER0, 0);
-    spiset(IRQ_UART0, 1);
+    spiset(IRQ_UART, 1);
+    spiset(IRQ_MMIO, 1);
 
     group0enb();
 
     cprintf("gicinit done!\n");
 }
 
-void irqhandle(struct trapframe* f)
+void irqhandle(struct trapframe* f, uint32 el)
 {
     int id = GICC_REG(GICC_IAR);
-    irqhs[id](f, id);
+    intrs[id](f, id, el);
     GICC_REG(GICC_EOIR) = id;
 }

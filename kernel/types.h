@@ -17,8 +17,10 @@ typedef short               int16;
 typedef int                 int32;
 typedef long long           int64;
 
+#ifndef NULL
 #define NULL                0
+#endif
 
-typedef void (*irqhandler)  (struct trapframe *tf, int id);
+typedef void (*intrhandler)  (struct trapframe *tf, int id, uint32 el);
 
 #endif

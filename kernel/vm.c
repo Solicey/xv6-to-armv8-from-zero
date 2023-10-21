@@ -21,7 +21,7 @@ uint64* walk(uint64* pde, uint64 vaddr, int alloc)
     {
         //cprintf("level: %d\n", level);
         uint64* pte = &pde[PX(level, vaddr)];
-        if ((*pte & MM_TYPE_TABLE) == MM_TYPE_TABLE)
+        if ((*pte & MM_TYPE_MASK) == MM_TYPE_TABLE)
         {
             pde = (uint64*)P2V((*pte & PG_ADDR_MASK));
         }
@@ -95,7 +95,7 @@ void uvmunmap(uint64* pde, uint64 vaddr, uint64 npages, int do_free)
     {
         assert(pte = walk(pde, a, 0));
         assert(*pte & MM_TYPE_VALID);
-        assert((*pte & MM_TYPE_PAGE) == MM_TYPE_PAGE);
+        assert((*pte & MM_TYPE_MASK) == MM_TYPE_PAGE);
 
         if (do_free)
         {
@@ -114,7 +114,7 @@ void freewalk(uint64* pde)
     for (int i = 0; i < PX_ENTRY_CNT; i++)
     {
         uint64 pte = pde[i];
-        if ((pte & MM_TYPE_TABLE) == MM_TYPE_TABLE)
+        if ((pte & MM_TYPE_MASK) == MM_TYPE_TABLE)
         {
             uint64* child = (uint64*)P2V((pte & PG_ADDR_MASK));
             freewalk(child);
@@ -195,7 +195,7 @@ uint64 walkaddr(uint64* pde, uint64 vaddr)
     pte = walk(pde, vaddr, 0);
     if (pte == NULL)
         return 0;
-    if ((*pte & MM_TYPE_PAGE) != MM_TYPE_PAGE)
+    if ((*pte & MM_TYPE_MASK) != MM_TYPE_PAGE)
         return 0;
     if ((*pte & AP_USER) == 0)
         return 0;

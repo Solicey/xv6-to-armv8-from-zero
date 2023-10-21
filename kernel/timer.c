@@ -10,18 +10,21 @@ void timerinit(void)
     asm volatile("mrs %[r], cntfrq_el0" : [r] "=r"(timerfq) : : );
     cprintf("timer frq: %d\n", timerfq);    // 62500000
     asm volatile("msr cntp_tval_el0, %[x]" : : [x] "r"(timerfq) : );
-    irqhset(PPI2ID(IRQ_TIMER0), timerirqh);
+    intrset(PPI2ID(IRQ_TIMER0), timerintr);
     asm volatile("msr cntp_ctl_el0, %[x]" : : [x] "r"(1) : );
 
     cprintf("timerinit done!\n");
 }
 
-void timerirqh(struct trapframe* f, int id)
+void timerintr(struct trapframe* f, int id, uint32 el)
 {
-    cprintf("timer! hart %d\n", cpuid());
     asm volatile("msr cntp_tval_el0, %[x]" : : [x] "r"(timerfq) : );
-    // give up cpu
-    struct proc* p = myproc();
-    if (p && p->state == RUNNING)
-        yield();
+    // give up cpu on lower el
+    if (el == 0)
+    {
+        cprintf("el0 timer! hart %d\n", cpuid());
+        struct proc* p = myproc();
+        if (p && p->state == RUNNING)
+            yield();
+    }
 }

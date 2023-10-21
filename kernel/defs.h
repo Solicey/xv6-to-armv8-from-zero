@@ -8,6 +8,14 @@
 #include "proc.h"
 #include "spinlock.h"
 #include "arm.h"
+#include "sleeplock.h"
+#include "buf.h"
+
+// bio.c
+void            binit(void);
+struct buf*     bread(uint dev, uint blockno);
+void            brelse(struct buf* b);
+void            bwrite(struct buf* b);
 
 // console.c
 void            check_assertion(void);
@@ -15,10 +23,13 @@ void            consoleinit(void);
 void            cprintf(const char *fmt, ...);
 //void          panic(const char *fmt, ...);
 
+// fs.c
+void            fsinit(int dev);
+
 // gic.c
 void            gicinit(void);
-void            irqhandle(struct trapframe* f);
-void            irqhset(int id, irqhandler ih);
+void            irqhandle(struct trapframe* f, uint32 el);
+void            intrset(int id, intrhandler ih);
 
 // kalloc.c
 void*           kalloc(void);
@@ -30,8 +41,16 @@ struct cpu*     mycpu(void);
 struct proc*    myproc(void);
 void            procinit(void);
 void            scheduler(void);
+void            sleep(void* chan, struct spinlock* lk);
 void            userinit(void);
+void            wakeup(void* chan);
 void            yield(void);
+
+// sleeplock.c
+void            acquiresleep(struct sleeplock* lk);
+int             holdingsleep(struct sleeplock* lk);
+void            initsleeplock(struct sleeplock* lk, char* name);
+void            releasesleep(struct sleeplock* lk);
 
 // spinlock.c
 void            acquire(struct spinlock* lk);
@@ -62,14 +81,19 @@ void            syscall(void);
 
 // timer.c
 void            timerinit(void);
-void            timerirqh(struct trapframe* f, int id);
+void            timerintr(struct trapframe* f, int id, uint32 el);
 
 // uart.c
-void            uartintr(void);
+void            uartsti(void);
 void            uartinit(void);
-void            uartirqh(struct trapframe* f, int id);
+void            uartintr(struct trapframe* f, int id, uint32 el);
 void            uartputc(char c);
 void            uartputs(const char* s);
+
+// virtio_disk.c
+void            virtio_disk_init(void);
+void            virtio_disk_intr(struct trapframe* f, int id, uint32 el);
+void            virtio_disk_rw(struct buf *b, int write);
 
 // vm.c
 int             copyin(uint64* pde, char* dst, uint64 srcvaddr, uint64 len);
@@ -83,14 +107,34 @@ void            uvmunmap(uint64* pde, uint64 vaddr, uint64 npages, int do_free);
 uint64*         walk(uint64* pde, uint64 vaddr, int alloc);
 
 #define         assert(x)                                           \
-({                                                                  \
+{                                                                   \
     if (!(x))                                                       \
     {                                                               \
         check_assertion();                                          \
-        cprintf("%s:%d: assertion failed at cpu %d.\n", __FILE__, __LINE__, cpuid());  \
+        cprintf("%s:%d: assertion failed at cpu %d.\n",             \
+        __FILE__, __LINE__, cpuid());                               \
         for (;;);                                                   \
     }                                                               \
-})
+}
+
+#define         asserts(x, s)                                       \
+{                                                                   \
+    if (!(x))                                                       \
+    {                                                               \
+        check_assertion();                                          \
+        cprintf("%s:%d: assertion failed at cpu %d: %s\n",          \
+        __FILE__, __LINE__, cpuid(), s);                            \
+        for (;;);                                                   \
+    }                                                               \
+}
+
+#define         panic(s)                                            \
+{                                                                   \
+    check_assertion();                                              \
+    cprintf("%s:%d: panicked at cpu %d: %s\n",                      \
+    __FILE__, __LINE__, cpuid(), s);                                \
+    for (;;);                                                       \
+}
 
 // number of elements in fixed-size array
 #define NELEM(x)    (sizeof(x) / sizeof((x)[0]))

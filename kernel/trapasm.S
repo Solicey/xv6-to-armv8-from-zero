@@ -93,7 +93,7 @@ el1_sp0:
 
 el1_spx:
     verror(4)
-    verror(5)									/* for debug only */
+    ventry_el1(current_el_irq)					/* IRQ/vIRQ */
     verror(6)
     verror(7)
 

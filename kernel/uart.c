@@ -7,6 +7,9 @@
 
 static volatile uint* uart_base = (uint*)UART_BASE;
 
+// the address of uart register r.
+#define R(r)            ((volatile uint32 *)(uart_base + (r)))
+
 // https://github.com/umanovskis/baremetal-arm/blob/master/doc/06_uart.md
 #define UART_DR		    0	        // data register
 #define UART_RSR	    1	        // receive status register/error clear register
@@ -22,8 +25,8 @@ static volatile uint* uart_base = (uint*)UART_BASE;
 #define UART_CR_TXE	    (1 << 8)	// enable transmit
 #define	UART_CR_EN	    (1 << 0)	// enable UART
 #define UART_IMSC	    14	        // interrupt mask set/clear register
-#define UART_RXI	(1 << 4)	    // receive interrupt
-#define UART_TXI	(1 << 5)	    // transmit interrupt
+#define UART_RXI	    (1 << 4)	    // receive interrupt
+#define UART_TXI	    (1 << 5)	    // transmit interrupt
 #define UART_MIS	    16	        // masked interrupt status register
 #define	UART_ICR	    17	        // interrupt clear register
 
@@ -35,46 +38,48 @@ void uartinit(void)
     uart_base = (uint*)(P2V(UART_BASE));
 
     // set the bit rate: integer/fractional baud rate registers
-    uart_base[UART_IBRD] = UART_CLK / (16 * UART_BITRATE);
+    *R(UART_IBRD) = UART_CLK / (16 * UART_BITRATE);
 
     uint left = UART_CLK % (16 * UART_BITRATE);
-    uart_base[UART_FBRD] = (left * 4 + UART_BITRATE / 2) / UART_BITRATE;
+    *R(UART_FBRD) = (left * 4 + UART_BITRATE / 2) / UART_BITRATE;
 
     // enable trasmit and receive
-    uart_base[UART_CR] |= (UART_CR_EN | UART_CR_RXE | UART_CR_TXE);
+    *R(UART_CR) |= (UART_CR_EN | UART_CR_RXE | UART_CR_TXE);
 
     // enable FIFO
-    uart_base[UART_LCRH] |= UART_LCRH_FEN;
+    *R(UART_LCRH) |= UART_LCRH_FEN;
 
     cprintf("uartinit done!\n");
 }
 
 void uartputc(char c)
 {
-    uart_base[UART_DR] = (uint)c;
+    *R(UART_DR) = (uint)c;
 }
 
 void uartputs(const char* s)
 {
     while (*s != '\0')
     {
-        uart_base[UART_DR] = (uint)(*s);
+        *R(UART_DR) = (uint)(*s);
         s++;
     }
 }
 
-void uartintr(void)
+// enable uart interrupt
+void uartsti(void)
 {
-    uart_base[UART_IMSC] = UART_RXI;
-    irqhset(SPI2ID(IRQ_UART0), uartirqh);
+    *R(UART_IMSC) = UART_RXI;
+    intrset(SPI2ID(IRQ_UART), uartintr);
 
     cprintf("uartintr enabled!\n");
 }
 
-void uartirqh(struct trapframe* f, int id)
+// uart interrupt handler
+void uartintr(struct trapframe* f, int id, uint32 el)
 {
-    if (uart_base[UART_MIS] & UART_RXI)
+    if (*R(UART_MIS) & UART_RXI)
         uartputc('!');
 
-    uart_base[UART_ICR] = UART_RXI | UART_TXI;
+    *R(UART_ICR) = UART_RXI | UART_TXI;
 }

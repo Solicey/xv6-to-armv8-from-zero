@@ -42,4 +42,12 @@
 // PSTATE
 #define DAIF_I                          (1 << 7)
 
+/* Translation Control Register */
+#define TCR_T0SZ                        (64 - 48)               // top 32 bits must be either all 0 or all 1
+#define TCR_T1SZ                        ((64 - 48) << 16)
+#define TCR_TG0_4K                      (0 << 14)               // 4K page table
+#define TCR_TG1_4K                      (0 << 30)
+#define TCR_TBI0_IGNORED                (1 << 37)               // ttbr0 tagged address available
+#define TCR_VALUE                       (TCR_T0SZ | TCR_T1SZ | TCR_TG0_4K | TCR_TG1_4K | TCR_TBI0_IGNORED)
+
 #endif

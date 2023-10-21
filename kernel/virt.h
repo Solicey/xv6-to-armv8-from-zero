@@ -7,7 +7,8 @@
 
 /* ARCH_TIMER_NS_EL1_IRQ */
 #define IRQ_TIMER0      14
-#define IRQ_UART0       1
+#define IRQ_UART        1
+#define IRQ_MMIO        16
 
 /* Private Peripheral Interrupts */
 #define PPI_BASE        16
