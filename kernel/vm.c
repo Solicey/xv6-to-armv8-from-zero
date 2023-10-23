@@ -181,10 +181,9 @@ void uvmswitch(struct proc* p)
     cprintf("uvmswitch done!\n");
 }
 
-// Look up a virtual address, return the physical address,
+// Look up a virtual address, return (KERNBASE + physical address),
 // or 0 if not mapped.
 // Can only be used to look up user pages.
-// Return virtual address.
 uint64 walkaddr(uint64* pde, uint64 vaddr)
 {
     uint64* pte;
@@ -270,6 +269,30 @@ int copyin(uint64* pde, char* dst, uint64 srcvaddr, uint64 len)
         len -= n;
         dst += n;
         srcvaddr = va0 + PG_SIZE;
+    }
+    return 0;
+}
+
+// Copy from kernel to user.
+// Copy len bytes from src to virtual address dstva in a given page table.
+// Return 0 on success, -1 on error.
+int copyout(uint64* pde, uint64 dstvaddr, char *src, uint64 len)
+{
+    uint64 n, va0, pa0;
+    while (len > 0)
+    {
+        va0 = PG_ROUND_DOWN(dstvaddr);
+        pa0 = walkaddr(pde, va0);
+        if (pa0 == 0)
+            return -1;
+        n = PG_SIZE - (dstvaddr - va0);
+        if (n > len)
+            n = len;
+        memmove((void*)(pa0 + (dstvaddr - va0)), src, n);
+
+        len -= n;
+        src += n;
+        dstvaddr = va0 + PG_SIZE;
     }
     return 0;
 }

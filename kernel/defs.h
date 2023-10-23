@@ -10,11 +10,16 @@
 #include "arm.h"
 #include "sleeplock.h"
 #include "buf.h"
+#include "fs.h"
+#include "stat.h"
+#include "file.h"
 
 // bio.c
 void            binit(void);
+void            bpin(struct buf *b);
 struct buf*     bread(uint dev, uint blockno);
 void            brelse(struct buf* b);
+void            bunpin(struct buf *b);
 void            bwrite(struct buf* b);
 
 // console.c
@@ -23,8 +28,37 @@ void            consoleinit(void);
 void            cprintf(const char *fmt, ...);
 //void          panic(const char *fmt, ...);
 
+// exec.c
+int             exec(char *path, char **argv);
+
+// file.c
+struct file*    filealloc(void);
+void            fileclose(struct file* f);
+struct file*    filedup(struct file* f);
+void            fileinit(void);
+int             fileread(struct file* f, uint64 addr, int n);
+int             filestat(struct file* f, uint64 addr);
+int             filewrite(struct file* f, uint64 addr, int n);
+
 // fs.c
+int             dirlink(struct inode* dp, char* name, uint inum);
+struct inode*   dirlookup(struct inode* dp, char* name, uint* poff);
 void            fsinit(int dev);
+struct inode*   ialloc(uint dev, short type);
+struct inode*   idup(struct inode *ip);
+void            iinit(void);
+void            ilock(struct inode* ip);
+void            iput(struct inode* ip);
+void            itrunc(struct inode* ip);
+void            iunlock(struct inode* ip);
+void            iunlockput(struct inode* ip);
+void            iupdate(struct inode *ip);
+int             namecmp(const char* s, const char* t);
+struct inode*   namei(char* path);
+struct inode*   nameiparent(char* path, char* name);
+int             readi(struct inode* ip, int user_dst, uint64 dst, uint off, uint n);
+void            stati(struct inode* ip, struct stat* st);
+int             writei(struct inode* ip, int user_src, uint64 src, uint off, uint n);
 
 // gic.c
 void            gicinit(void);
@@ -36,7 +70,15 @@ void*           kalloc(void);
 void            kinit(void);
 void            kfree(void* paddr);
 
+// log.c
+void            begin_op(void);
+void            end_op(void);
+void            initlog(int dev, struct superblock *sb);
+void            log_write(struct buf *b);
+
 // proc.c
+int             either_copyin(void* dst, int user_src, uint64 src, uint64 len);
+int             either_copyout(int user_dst, uint64 dst, void* src, uint64 len);
 struct cpu*     mycpu(void);
 struct proc*    myproc(void);
 void            procinit(void);
@@ -67,6 +109,8 @@ void*           memmove(void* dst, const void* src, uint n);
 void*           memset(void* dst, int c, uint n);
 char*           safestrcpy(char* s, const char* t, int n);
 int             strlen(const char* s);
+int             strncmp(const char* p, const char* q, uint n);
+char*           strncpy(char* s, const char* t, int n);
 
 // swtch.S
 void            swtch(struct context* old, struct context* new);
@@ -98,6 +142,7 @@ void            virtio_disk_rw(struct buf *b, int write);
 // vm.c
 int             copyin(uint64* pde, char* dst, uint64 srcvaddr, uint64 len);
 int             copyinstr(uint64* pde, char* dst, uint64 srcvaddr, uint64 max);
+int             copyout(uint64* pde, uint64 dstvaddr, char *src, uint64 len);
 int             mappages(uint64* pde, uint64 vaddr, uint64 paddr, uint64 size, int perm);
 uint64*         uvmcreate(void);
 void            uvmfirst(uint64* pde, char* src, uint size);

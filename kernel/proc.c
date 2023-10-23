@@ -207,7 +207,7 @@ void userinit(void)
     p->trapframe->pc = 0;                   // beginning of initcode.S
 
     safestrcpy(p->name, "initcode", sizeof(p->name));
-    // TODO: cwd
+    p->cwd = namei("/");
 
     p->state = RUNNABLE;
 }
@@ -218,7 +218,7 @@ void forkret(void)
 {
     static int first = 1;
 
-    // ? Still holding p->lock from scheduler.
+    // Still holding p->lock from scheduler.
     release(&myproc()->lock);
 
     if (first)
@@ -360,5 +360,41 @@ void wakeup(void* chan)
             }
             release(&p->lock);
         }
+    }
+}
+
+// Copy to either a user address, or kernel address,
+// depending on usr_dst.
+// Returns 0 on success, -1 on error.
+// ! Might not need this because we have two page tables
+int either_copyout(int user_dst, uint64 dst, void* src, uint64 len)
+{
+    struct proc* p = myproc();
+    if (user_dst)
+    {
+        return copyout(p->pagetable, dst, src, len);
+    }
+    else
+    {
+        memmove((char*)dst, src, len);
+        return 0;
+    }
+}
+
+// Copy from either a user address, or kernel address,
+// depending on usr_src.
+// Returns 0 on success, -1 on error.
+// ! Might not need this because we have two page tables
+int either_copyin(void* dst, int user_src, uint64 src, uint64 len)
+{
+    struct proc* p = myproc();
+    if (user_src)
+    {
+        return copyin(p->pagetable, dst, src, len);
+    }
+    else
+    {
+        memmove(dst, (char*)src, len);
+        return 0;
     }
 }

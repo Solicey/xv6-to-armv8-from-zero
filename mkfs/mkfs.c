@@ -1,4 +1,4 @@
-/*#include <stdio.h>
+#include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,7 +8,7 @@
 #define stat xv6_stat  // avoid clash with host struct stat
 #include "types.h"
 #include "fs.h"
-#include "kernel/stat.h"
+#include "stat.h"
 #include "param.h"
 
 #ifndef static_assert
@@ -85,12 +85,12 @@ int main(int argc, char *argv[])
     if (fsfd < 0)
         die(argv[1]);
 
-    // 1 fs block = 1 disk sector
     nmeta = 2 + nlog + ninodeblocks + nbitmap;
     nblocks = FSSIZE - nmeta;
 
     sb.magic = FSMAGIC;
     sb.size = xint(FSSIZE);
+    printf("xint(FSSIZE): %d\n", sb.size);
     sb.nblocks = xint(nblocks);
     sb.ninodes = xint(NINODES);
     sb.nlog = xint(nlog);
@@ -296,4 +296,3 @@ void die(const char *s)
     perror(s);
     exit(1);
 }
-*/

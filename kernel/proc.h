@@ -4,6 +4,7 @@
 #include "types.h"
 #include "virt.h"
 #include "spinlock.h"
+#include "file.h"
 
 #define NPROC               64
 #define PROC_KSTACK_SIZE    PG_SIZE
@@ -87,6 +88,8 @@ struct proc
     uint64* pagetable;          // User page table
     struct trapframe* trapframe;// Trapframe for current syscall
     struct context context;     // swtch() here to run process
+    struct file* ofile[NOFILE]; // Open files
+    struct inode* cwd;          // Current directory
     char name[16];              // Process name (debugging)
 };
 

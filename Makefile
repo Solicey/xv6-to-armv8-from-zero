@@ -25,7 +25,10 @@ OBJS = \
 	$K/bio.o \
 	$K/sleeplock.o \
 	$K/virtio_disk.o \
-	$K/fs.o
+	$K/fs.o \
+	$K/log.o \
+	$K/file.o \
+	$K/exec.o
 
 TOOLPREFIX = aarch64-linux-gnu-
 
@@ -48,17 +51,17 @@ ASFLAGS = -march=armv8-a
 
 .PHONY: all
 
-all: fs.img mkfs/mkfs
+all: fs.img $K/kernel
 
-a: fs.img
+a: fs.img $K/kernel
 
 $K/kernel: $(OBJS) Makefile $K/kernel.ld $U/initcode
 	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $@ $(OBJS) $U/initcode
 	$(OBJDUMP) -S $@ > $K/kernel.asm
 	$(OBJDUMP) -x $@ > $K/kernel.hdr
 
-fs.img: $K/kernel
-	$(OBJCOPY) -O binary $< $@
+# fs.img: $K/kernel
+# $(OBJCOPY) -O binary $< $@
 
 $K/%.o: $K/%.S
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -79,6 +82,9 @@ $U/initcode: $U/initcode.S
 
 mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
 	gcc -Werror -Wall -Ikernel -o $@ $<
+
+fs.img: mkfs/mkfs README
+	mkfs/mkfs $@ README
 
 # .PRECIOUS: %.o
 
@@ -123,5 +129,3 @@ dt:
 			-cpu cortex-a72 -m 128 -smp $(NCPU) \
 			$(QEMUDISK)
 	dtc -o dump.dts -O dts -I dtb dump.dtb
-
-fs: mkfs/mkfs

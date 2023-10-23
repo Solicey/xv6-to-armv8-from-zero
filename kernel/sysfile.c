@@ -36,7 +36,8 @@ uint64 sys_exec(void)
     }
 
     // TODO: exec
-    int ret = 0;
+    int ret = exec(path, argv);
+
     cprintf("exec get ret!\n");
 
     for (i = 0; i < NELEM(argv) && argv[i] != 0; i++)

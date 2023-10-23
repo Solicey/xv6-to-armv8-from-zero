@@ -28,6 +28,8 @@ void start()
         timerinit();
 
         binit();
+        iinit();
+        fileinit();
         virtio_disk_init();
 
         procinit();
