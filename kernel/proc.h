@@ -84,8 +84,8 @@ struct proc
 
     // these are private to the process, so p->lock need not be held.
     char* kstack;               // Virtual address of kernel stack
-    uint64 sz;                  // Size of process memory (bytes)
-    uint64* pagetable;          // User page table
+    uint64 size;                // Size of process memory (bytes)
+    uint64* pagetable;          // User page directory table
     struct trapframe* trapframe;// Trapframe for current syscall
     struct context context;     // swtch() here to run process
     struct file* ofile[NOFILE]; // Open files

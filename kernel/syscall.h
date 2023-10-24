@@ -3,5 +3,9 @@
 
 #define SYS_exit    0
 #define SYS_exec    1
+#define SYS_write   2
+#define SYS_open    3
+#define SYS_mknod   4
+#define SYS_dup     5
 
 #endif

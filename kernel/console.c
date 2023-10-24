@@ -1,139 +1,191 @@
-#include <stdarg.h>
+//
+// Console input and output, to the uart.
+// Reads are line at a time.
+// Implements special input characters:
+//   newline -- end of line
+//   control-h -- backspace
+//   control-u -- kill line
+//   control-d -- end of file
+//   control-p -- print process list
+//
+
 #include "types.h"
 #include "defs.h"
 #include "arm.h"
+#include "file.h"
 
-static struct spinlock conslock;
-//static int panicked = -1;
-static int assertion_failed = -1;
+#define BACKSPACE           0x100
+#define C(x)                ((x) - '@')  // Control-x
+
+#define INPUT_BUF_SIZE      128
+
+struct
+{
+    struct spinlock lock;
+    // input
+    char buf[INPUT_BUF_SIZE];
+    uint r;  // Read index
+    uint w;  // Write index
+    uint e;  // Edit index
+} cons;
 
 void consoleinit(void)
 {
-    initlock(&conslock, "console");
+    initlock(&cons.lock, "console");
     uartinit();
-    cprintf("consoleinit done!\n");
+
+    // connect read and write system calls
+    // to consoleread and consolewrite.
+    devsw[CONSOLE].read = consoleread;
+    devsw[CONSOLE].write = consolewrite;
+
+    printf("consoleinit done!\n");
 }
 
-static void printint(int64 x, int base, int sign)
+//
+// send one character to the uart.
+// called by printf(), and to echo input characters,
+// but not from write().
+//
+void consputc(int c)
 {
-    static char digit[] = "0123456789abcdef";
-    static char buf[64];
-
-    if (sign && x < 0)
+    if (c == BACKSPACE)
     {
-        x = -x;
-        uartputc('-');
+        // if the user typed backspace, overwrite with a space.
+        uartputc_sync('\b'); uartputc_sync(' '); uartputc_sync('\b');
     }
-
-    int i = 0;
-    uint64 t = x;
-    do
-    {
-        buf[i++] = digit[t % base];
-    } while (t /= base);
-
-    while (i--)
-        uartputc(buf[i]);
-}
-
-void vsprintf(void (*putc)(char), const char *fmt, va_list ap)
-{
-    int i, c;
-    char *s;
-    for (i = 0; (c = fmt[i] & 0xff) != 0; i++)
-    {
-        if (c != '%')
-        {
-            putc(c);
-            continue;
-        }
-
-        int l = 0;
-        for (; fmt[i + 1] == 'l'; i++)
-            l++;
-
-        if (!(c = fmt[++i] & 0xff))
-            break;
-
-        switch (c)
-        {
-        case 'u':
-            if (l == 2) printint(va_arg(ap, int64), 10, 0);
-            else printint(va_arg(ap, int), 10, 0);
-            break;
-        case 'd':
-            if (l == 2) printint(va_arg(ap, int64), 10, 1);
-            else printint(va_arg(ap, int), 10, 1);
-            break;
-        case 'x':
-            if (l == 2) printint(va_arg(ap, int64), 16, 0);
-            else printint(va_arg(ap, int), 16, 0);
-            break;
-        case 'p':
-            printint((int64)va_arg(ap, void *), 16, 0);
-            break;
-        case 'c':
-            putc(va_arg(ap, int));
-            break;
-        case 's':
-            if ((s = (char*)va_arg(ap, char*)) == 0)
-                s = "(null)";
-            for (; *s; s++)
-                putc(*s);
-            break;
-        case '%':
-            putc('%');
-            break;
-        default:
-            putc('%');
-            putc(c);
-            break;
-        }
-    }
-}
-
-/* Print to the console. */
-void cprintf(const char *fmt, ...)
-{
-    va_list ap;
-    acquire(&conslock);
-    if (assertion_failed >= 0 && assertion_failed != cpuid())
-    {
-        release(&conslock);
-        for (;;);
-    }
-
-    va_start(ap, fmt);
-    vsprintf(uartputc, fmt, ap);
-    va_end(ap);
-
-    release(&conslock);
-}
-
-void check_assertion(void)
-{
-    acquire(&conslock);
-    if (assertion_failed < 0)
-        assertion_failed = cpuid();
     else
     {
-        release(&conslock);
-        for (;;);
+        uartputc_sync(c);
     }
-    release(&conslock);
 }
 
-/*void panic(const char *fmt, ...)
+//
+// user read()s from the console go here.
+// copy (up to) a whole input line to dst.
+// user_dist indicates whether dst is a user
+// or kernel address.
+//
+int consoleread(int user_dst, uint64 dst, int n)
 {
-    va_list ap;
+    uint target;
+    int c;
+    char cbuf;
 
-    cprintf("\n!!!!!!!     panic      !!!!!!!\n");
-    va_start(ap, fmt);
-    vsprintf(uartputc, fmt, ap);
-    va_end(ap);
+    target = n;
+    acquire(&cons.lock);
+    while (n > 0)
+    {
+        // wait until interrupt handler has put some
+        // input into cons.buffer.
+        while (cons.r == cons.w)
+        {
+            if (killed(myproc()))
+            {
+                release(&cons.lock);
+                return -1;
+            }
+            sleep(&cons.r, &cons.lock);
+        }
 
-    //cprintf("\n%s:%d: kernel panic.\n", __FILE__, __LINE__);
-    cprintf("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-    panicked = 1;
-    for (;;);
-}*/
+        c = cons.buf[cons.r++ % INPUT_BUF_SIZE];
+
+        if (c == C('D'))
+        {
+            // end-of-file
+            if (n < target)
+            {
+                // Save ^D for next time, to make sure
+                // caller gets a 0-byte result.
+                cons.r--;
+            }
+            break;
+        }
+
+        // copy the input byte to the user-space buffer.
+        cbuf = c;
+        if (either_copyout(user_dst, dst, &cbuf, 1) == -1)
+            break;
+
+        dst++;
+        --n;
+
+        if (c == '\n')
+        {
+            // a whole line has arrived, return to
+            // the user-level read().
+            break;
+        }
+    }
+    release(&cons.lock);
+
+    return target - n;
+}
+
+//
+// user write()s to the console go here.
+//
+int consolewrite(int user_src, uint64 src, int n)
+{
+    int i;
+
+    for (i = 0; i < n; i++)
+    {
+        char c;
+        if (either_copyin(&c, user_src, src + i, 1) == -1)
+            break;
+        uartputc(c);
+    }
+
+    return i;
+}
+
+void consoleintr(int c)
+{
+    acquire(&cons.lock);
+
+    switch (c)
+    {
+    case C('P'):  // Print process list.
+        // TODO: procdump();
+        break;
+    case C('U'):  // Kill line.
+        while (cons.e != cons.w &&
+            cons.buf[(cons.e - 1) % INPUT_BUF_SIZE] != '\n')
+        {
+            cons.e--;
+            consputc(BACKSPACE);
+        }
+        break;
+    case C('H'): // Backspace
+    case '\x7f': // Delete key
+        if (cons.e != cons.w)
+        {
+            cons.e--;
+            consputc(BACKSPACE);
+        }
+        break;
+    default:
+        if (c != 0 && cons.e - cons.r < INPUT_BUF_SIZE)
+        {
+            c = (c == '\r') ? '\n' : c;
+
+            // echo back to the user.
+            consputc(c);
+
+            // store for consumption by consoleread().
+            cons.buf[cons.e++ % INPUT_BUF_SIZE] = c;
+
+            if (c == '\n' || c == C('D') || cons.e - cons.r == INPUT_BUF_SIZE)
+            {
+                // wake up consoleread() if a whole line (or end-of-file)
+                // has arrived.
+                cons.w = cons.e;
+                wakeup(&cons.r);
+            }
+        }
+        break;
+    }
+
+    release(&cons.lock);
+}

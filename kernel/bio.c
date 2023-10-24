@@ -87,7 +87,7 @@ static struct buf* bget(uint dev, uint blockno)
         }
     }
 
-    assert(0);  // no buffers
+    panic("no buffers");
     return NULL;
 }
 

@@ -19,7 +19,7 @@ uint64* walk(uint64* pde, uint64 vaddr, int alloc)
 {
     for (int level = 0; level < 3; level++)
     {
-        //cprintf("level: %d\n", level);
+        //printf("level: %d\n", level);
         uint64* pte = &pde[PX(level, vaddr)];
         if ((*pte & MM_TYPE_MASK) == MM_TYPE_TABLE)
         {
@@ -33,7 +33,7 @@ uint64* walk(uint64* pde, uint64 vaddr, int alloc)
         {
             if (!alloc || (pde = (uint64*)kalloc()) == 0)
                 return 0;
-            //cprintf("new pde: 0x%p\n", pde);
+            //printf("new pde: 0x%p\n", pde);
             memset(pde, 0, PG_SIZE);
             *pte = V2P((uint64)pde) | MM_TYPE_TABLE;
         }
@@ -59,10 +59,10 @@ int mappages(uint64* pde, uint64 vaddr, uint64 paddr, uint64 size, int perm)
     last = PG_ROUND_DOWN(vaddr + size - 1);
     for (;;)
     {
-        //cprintf("pde: 0x%p, a: 0x%p\n", pde, a);
+        //printf("pde: 0x%p, a: 0x%p\n", pde, a);
         if ((pte = walk(pde, a, 1)) == NULL)
         {
-            cprintf("mappages: walk failed");
+            printf("mappages: walk failed");
             return -1;
         }
 
@@ -138,7 +138,7 @@ void uvmfree(uint64* pde, uint64 size)
 }
 
 // create an empty user page table.
-// returns 0 if out of memory.
+// returns NULL if out of memory.
 uint64* uvmcreate(void)
 {
     uint64* pde;
@@ -159,7 +159,7 @@ void uvmfirst(uint64* pde, char* src, uint size)
     assert(size <= PG_SIZE);
 
     mem = kalloc();
-    cprintf("uvmfirst mem: 0x%p, src: 0x%p, size: %d\n", mem, src, size);
+    printf("uvmfirst mem: 0x%p, src: 0x%p, size: %d\n", mem, src, size);
     memset(mem, 0, PG_SIZE);
     mappages(pde, 0, V2P(mem), PG_SIZE, AP_RW | AP_USER);
     memmove(mem, src, size);
@@ -174,11 +174,11 @@ void uvmswitch(struct proc* p)
 
     assert(p->pagetable);
     val64 = (uint64)V2P(p->pagetable);
-    //cprintf("uvmswitch pde: 0x%p\n", val64);
+    //printf("uvmswitch pde: 0x%p\n", val64);
     lttbr0(val64);
 
     pop_off();
-    cprintf("uvmswitch done!\n");
+    //printf("uvmswitch done!\n");
 }
 
 // Look up a virtual address, return (KERNBASE + physical address),
@@ -295,4 +295,65 @@ int copyout(uint64* pde, uint64 dstvaddr, char *src, uint64 len)
         dstvaddr = va0 + PG_SIZE;
     }
     return 0;
+}
+
+// Deallocate user pages to bring the process size from oldsz to
+// newsz.  oldsz and newsz need not be page-aligned, nor does newsz
+// need to be less than oldsz.  oldsz can be larger than the actual
+// process size.  Returns the new process size.
+uint64 uvmdealloc(uint64* pde, uint64 oldsz, uint64 newsz)
+{
+    if (newsz >= oldsz)
+        return oldsz;
+
+    if (PG_ROUND_UP(newsz) < PG_ROUND_UP(oldsz))
+    {
+        int npages = (PG_ROUND_UP(oldsz) - PG_ROUND_UP(newsz)) / PG_SIZE;
+        uvmunmap(pde, PG_ROUND_UP(newsz), npages, 1);
+    }
+
+    return newsz;
+}
+
+// Allocate PTEs and physical memory to grow process from oldsz to
+// newsz, which need not be page aligned.  Returns new size or 0 on error.
+uint64 uvmalloc(uint64* pde, uint64 oldsz, uint64 newsz)
+{
+    char* mem;
+    uint64 a;
+
+    if (newsz < oldsz)
+        return oldsz;
+
+    oldsz = PG_ROUND_UP(oldsz);
+    for (a = oldsz; a < newsz; a += PG_SIZE)
+    {
+        mem = kalloc();
+        if (mem == NULL)
+        {
+            uvmdealloc(pde, a, oldsz);
+            return 0;
+        }
+        memset(mem, 0, PG_SIZE);
+        if (mappages(pde, a, (uint64)mem, PG_SIZE, AP_RW | AP_USER) != 0)
+        {
+            kfree(mem);
+            uvmdealloc(pde, a, oldsz);
+            return 0;
+        }
+    }
+    return newsz;
+}
+
+// mark a PTE invalid for user access.
+// used by exec for the user stack guard page.
+void uvmclear(uint64* pde, uint64 vaddr)
+{
+    uint64* pte;
+
+    pte = walk(pde, vaddr, 0);
+    if (pte == NULL)
+        panic("uvmclear");
+
+    *pte &= (*pte & ~(0x03 << 6)) | AP_KERNEL | AP_RW;
 }

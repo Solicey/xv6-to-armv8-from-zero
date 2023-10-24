@@ -56,15 +56,6 @@ void virtio_disk_init(void)
 
     initlock(&disk.vdisk_lock, "virtio_disk");
 
-    uint32 magic = *R(VIRTIO_MMIO_MAGIC_VALUE);
-    cprintf("magic: 0x%x\n", magic);
-    uint32 version = *R(VIRTIO_MMIO_VERSION);
-    cprintf("version: 0x%x\n", version);
-    uint32 devid = *R(VIRTIO_MMIO_DEVICE_ID);
-    cprintf("devid: 0x%x\n", devid);
-    uint32 vid = *R(VIRTIO_MMIO_VENDOR_ID);
-    cprintf("vid: 0x%x\n", vid);
-
     // 判断只读寄存器的值，确定设备正确
     if (*R(VIRTIO_MMIO_MAGIC_VALUE) != 0x74726976 ||
         *R(VIRTIO_MMIO_VERSION) != 2 ||
@@ -289,7 +280,7 @@ void virtio_disk_rw(struct buf *b, int write)
     *R(VIRTIO_MMIO_QUEUE_NOTIFY) = 0; // value is queue number
 
     // Wait for virtio_disk_intr() to say request has finished.
-    cprintf("wait for virtio_disk_intr...\n");
+    //printf("wait for virtio_disk_intr...\n");
     while (b->disk == 1)
     {
         sleep(b, &disk.vdisk_lock);
@@ -303,7 +294,7 @@ void virtio_disk_rw(struct buf *b, int write)
 
 void virtio_disk_intr(struct trapframe* f, int id, uint32 el)
 {
-    cprintf("virtio_disk_intr!\n");
+    //printf("virtio_disk_intr!\n");
 
     acquire(&disk.vdisk_lock);
 

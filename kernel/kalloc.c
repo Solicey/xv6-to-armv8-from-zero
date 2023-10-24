@@ -24,7 +24,7 @@ void kinit(void)
 {
     initlock(&kmem.lock, "kmem");
     freerange(end, (void*)(KERN_BASE + PHY_STOP));
-    cprintf("kinit done!\n");
+    printf("kinit done!\n");
 }
 
 void freerange(void* pa_start, void* pa_end)
@@ -41,11 +41,15 @@ void freerange(void* pa_start, void* pa_end)
 // which normally should have been returned by a
 // call to kalloc().  (The exception is when
 // initializing the allocator; see kinit above.)
+// Here paddr is the (actual physical address + KERN_BASE)
 void kfree(void* paddr)
 {
     struct run* r;
 
-    assert(!(((uint64)paddr % PG_SIZE) != 0 || (char*)paddr < KERN_BASE + end || (uint64)paddr >= KERN_BASE + PHY_STOP));
+    if (((uint64)paddr % PG_SIZE) != 0 || (char*)paddr < KERN_BASE + end || (uint64)paddr >= KERN_BASE + PHY_STOP)
+    {
+        panic("kfree");
+    }
 
     // ?? fill with junks?
     //memset(paddr, 1, PG_SIZE);
@@ -60,7 +64,8 @@ void kfree(void* paddr)
 
 // Allocate one 4096-byte page of physical memory.
 // Returns a pointer that the kernel can use.
-// Returns 0 if the memory cannot be allocated.
+// Which means the pointer value is (actual physical address + KERN_BASE)
+// Returns NULL if the memory cannot be allocated.
 void* kalloc(void)
 {
     struct run* r;

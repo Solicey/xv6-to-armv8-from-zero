@@ -70,28 +70,6 @@ int allocpid()
     return pid;
 }
 
-// Create a user page table for a given process, with no user memory,
-// but with trampoline and trapframe pages.
-/*uint64* proc_pagetable(struct proc* p)
-{
-    uint64* pde;
-
-    pde = uvmcreate();
-    if (pde == NULL)
-        return NULL;
-
-    // map the trampoline code (for system call return)
-    // at the highest user virtual address.
-    //if (mappages(pde, TRAMPOLINE, ))
-}*/
-
-/*void proc_freepagetable(uint64* pde, uint64 size)
-{
-    uvmunmap(pde, TRAMPOLINE, 1, 0);
-    uvmunmap(pde, TRAPFRAME, 1, 0);
-    uvmfree(pde, size);
-}*/
-
 // free a proc structure and the data hanging from it,
 // including user pages.
 // p->lock must be held.
@@ -143,7 +121,7 @@ found:
         release(&p->lock);
         return NULL;
     }
-    cprintf("p->kstack: 0x%p\n", p->kstack);
+    printf("p->kstack: 0x%p\n", p->kstack);
 
     // Stack size is 4K.
     sp = p->kstack + PROC_KSTACK_SIZE;
@@ -155,13 +133,13 @@ found:
     // trapret
     sp -= sizeof(uint64);
     *(uint64*)sp = (uint64)trapret;
-    cprintf("sp: 0x%p\n", sp);
-    cprintf("trapret: 0x%p\n", *(uint64*)sp);
+    printf("sp: 0x%p\n", sp);
+    printf("trapret: 0x%p\n", *(uint64*)sp);
     // frame pointer
     sp -= sizeof(uint64);
     *(uint64*)sp = (uint64)p->kstack + PROC_KSTACK_SIZE;
-    cprintf("sp: 0x%p\n", sp);
-    cprintf("fp: 0x%p\n", *(uint64*)sp);
+    printf("sp: 0x%p\n", sp);
+    printf("fp: 0x%p\n", *(uint64*)sp);
     // context is not store on proc kernel stack
 
     // skip the push {fp, lr} instruction in the prologue of forkret.
@@ -192,10 +170,10 @@ void userinit(void)
     memset(p->pagetable, 0, PG_SIZE);
 
     uint64 initcode_s = (uint64)eentry + (uint64)_binary_initcode_start + KERN_BASE;
-    cprintf("initcode_s: 0x%p\n", initcode_s);
+    printf("initcode_s: 0x%p\n", initcode_s);
     uvmfirst(p->pagetable, (char*)initcode_s, (uint64)_binary_initcode_size);
 
-    p->sz = PROC_KSTACK_SIZE;
+    p->size = PROC_KSTACK_SIZE;
 
     memset(p->trapframe, 0, sizeof(*(p->trapframe)));
     p->trapframe->spsr = 0x0;
@@ -307,11 +285,21 @@ void sched(void)
 void yield(void)
 {
     struct proc* p = myproc();
-    cprintf("proc %d yield!\n", p->pid);
+    printf("proc %d yield!\n", p->pid);
     acquire(&p->lock);
     p->state = RUNNABLE;
     sched();
     release(&p->lock);
+}
+
+int killed(struct proc *p)
+{
+    int k;
+
+    acquire(&p->lock);
+    k = p->killed;
+    release(&p->lock);
+    return k;
 }
 
 // Atomically release lock and sleep on chan.
@@ -369,7 +357,10 @@ void wakeup(void* chan)
 // ! Might not need this because we have two page tables
 int either_copyout(int user_dst, uint64 dst, void* src, uint64 len)
 {
-    struct proc* p = myproc();
+    memmove((char*)dst, src, len);
+    return 0;
+
+    /*struct proc* p = myproc();
     if (user_dst)
     {
         return copyout(p->pagetable, dst, src, len);
@@ -378,7 +369,7 @@ int either_copyout(int user_dst, uint64 dst, void* src, uint64 len)
     {
         memmove((char*)dst, src, len);
         return 0;
-    }
+    }*/
 }
 
 // Copy from either a user address, or kernel address,
@@ -387,7 +378,10 @@ int either_copyout(int user_dst, uint64 dst, void* src, uint64 len)
 // ! Might not need this because we have two page tables
 int either_copyin(void* dst, int user_src, uint64 src, uint64 len)
 {
-    struct proc* p = myproc();
+    memmove(dst, (char*)src, len);
+    return 0;
+
+    /*struct proc* p = myproc();
     if (user_src)
     {
         return copyin(p->pagetable, dst, src, len);
@@ -396,5 +390,51 @@ int either_copyin(void* dst, int user_src, uint64 src, uint64 len)
     {
         memmove(dst, (char*)src, len);
         return 0;
+    }*/
+}
+
+// Exit the current process.  Does not return.
+// An exited process remains in the zombie state
+// until its parent calls wait().
+void exit(int status)
+{
+    struct proc *p = myproc();
+
+    if (p == initproc)
+        panic("init exiting");
+
+    // TODO: Close all open files.
+    /* for (int fd = 0; fd < NOFILE; fd++)
+    {
+        if (p->ofile[fd])
+        {
+            struct file *f = p->ofile[fd];
+            fileclose(f);
+            p->ofile[fd] = 0;
+        }
     }
+
+    begin_op();
+    iput(p->cwd);
+    end_op();
+    p->cwd = 0;
+
+    acquire(&wait_lock);
+
+    // Give any children to init.
+    reparent(p);
+
+    // Parent might be sleeping in wait().
+    wakeup(p->parent);
+
+    acquire(&p->lock);
+
+    p->xstate = status;
+    p->state = ZOMBIE;
+
+    release(&wait_lock);
+
+    // Jump into the scheduler, never to return.
+    sched();
+    panic("zombie exit");*/
 }

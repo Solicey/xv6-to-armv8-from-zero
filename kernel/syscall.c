@@ -5,12 +5,20 @@
 
 extern uint64 sys_exit(void);
 extern uint64 sys_exec(void);
+extern uint64 sys_write(void);
+extern uint64 sys_open(void);
+extern uint64 sys_mknod(void);
+extern uint64 sys_dup(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
 static uint64(*syscalls[])(void) = {
 [SYS_exit] sys_exit,
-[SYS_exec] sys_exec
+[SYS_exec] sys_exec,
+[SYS_write] sys_write,
+[SYS_open] sys_open,
+[SYS_mknod] sys_mknod,
+[SYS_dup] sys_dup
 };
 
 void syscall(void)
@@ -24,16 +32,11 @@ void syscall(void)
         ret = syscalls[num]();
 
         // in ARM, parameters to main (argc, argv) are passed in r0 and r1
-        // do not set the return value if it is SYS_exec (the user program
-        // anyway does not expect us to return anything).
-        if (num != SYS_exec)
-        {
-            p->trapframe->x0 = ret;
-        }
+        p->trapframe->x0 = ret;
     }
     else
     {
-        cprintf("%d %s: syscall %d not implemented!\n", p->pid, p->name, num);
+        printf("%d %s: syscall %d not implemented!\n", p->pid, p->name, num);
         p->trapframe->x0 = -1;
     }
 }
@@ -42,7 +45,7 @@ void syscall(void)
 int fetchaddr(uint64 addr, uint64* ip)
 {
     struct proc* p = myproc();
-    if (addr >= p->sz || addr + sizeof(uint64) > p->sz)
+    if (addr >= p->size || addr + sizeof(uint64) > p->size)
         return -1;
     if (copyin(p->pagetable, (char*)ip, addr, sizeof(*ip)) != 0)
         return -1;

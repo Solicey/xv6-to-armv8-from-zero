@@ -14,11 +14,12 @@ void start()
         // clear bss
         memset((void*)edata, 0, ebss - edata);
 
+        printfinit();
         consoleinit();
 
-        cprintf("\n");
-        cprintf("xv6 kernel is booting\n");
-        cprintf("\n");
+        printf("\n");
+        printf("xv6 kernel is booting\n");
+        printf("\n");
 
         kinit();
 
@@ -45,7 +46,9 @@ void start()
     {
         while (started == 0);
         __sync_synchronize();
-        cprintf("hart %d starting\n", cpuid());
+        printf("hart %d starting\n", cpuid());
+
+        //panic("PANIC!");
         //assert(0);
         lvbar(vectors);
         timerinit();

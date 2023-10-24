@@ -25,7 +25,10 @@ void            bwrite(struct buf* b);
 // console.c
 void            check_assertion(void);
 void            consoleinit(void);
-void            cprintf(const char *fmt, ...);
+void            consoleintr(int c);
+int             consoleread(int user_dst, uint64 dst, int n);
+int             consolewrite(int user_src, uint64 src, int n);
+void            consputc(int c);
 //void          panic(const char *fmt, ...);
 
 // exec.c
@@ -76,9 +79,15 @@ void            end_op(void);
 void            initlog(int dev, struct superblock *sb);
 void            log_write(struct buf *b);
 
+// printf.c
+void            printf(const char *fmt, ...);
+void            printfinit(void);
+
 // proc.c
 int             either_copyin(void* dst, int user_src, uint64 src, uint64 len);
 int             either_copyout(int user_dst, uint64 dst, void* src, uint64 len);
+void            exit(int status);
+int             killed(struct proc *p);
 struct cpu*     mycpu(void);
 struct proc*    myproc(void);
 void            procinit(void);
@@ -128,11 +137,14 @@ void            timerinit(void);
 void            timerintr(struct trapframe* f, int id, uint32 el);
 
 // uart.c
-void            uartsti(void);
+int             uartgetc(void);
 void            uartinit(void);
 void            uartintr(struct trapframe* f, int id, uint32 el);
-void            uartputc(char c);
-void            uartputs(const char* s);
+void            uartputc(int c);
+void            uartputc_sync(int c);
+void            uartstart(void);
+void            uartsti(void);
+//void            uartputs(const char* s);
 
 // virtio_disk.c
 void            virtio_disk_init(void);
@@ -144,20 +156,25 @@ int             copyin(uint64* pde, char* dst, uint64 srcvaddr, uint64 len);
 int             copyinstr(uint64* pde, char* dst, uint64 srcvaddr, uint64 max);
 int             copyout(uint64* pde, uint64 dstvaddr, char *src, uint64 len);
 int             mappages(uint64* pde, uint64 vaddr, uint64 paddr, uint64 size, int perm);
+uint64          uvmalloc(uint64* pde, uint64 oldsz, uint64 newsz);
+void            uvmclear(uint64* pde, uint64 vaddr);
 uint64*         uvmcreate(void);
 void            uvmfirst(uint64* pde, char* src, uint size);
 void            uvmfree(uint64* pde, uint64 size);
 void            uvmswitch(struct proc* p);
 void            uvmunmap(uint64* pde, uint64 vaddr, uint64 npages, int do_free);
 uint64*         walk(uint64* pde, uint64 vaddr, int alloc);
+uint64          walkaddr(uint64* pde, uint64 vaddr);
 
 #define         assert(x)                                           \
 {                                                                   \
     if (!(x))                                                       \
     {                                                               \
         check_assertion();                                          \
-        cprintf("%s:%d: assertion failed at cpu %d.\n",             \
+        printf("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");\
+        printf("\n%s:%d: ASSERTION FAILED AT CPU %d.\n",            \
         __FILE__, __LINE__, cpuid());                               \
+        printf("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");\
         for (;;);                                                   \
     }                                                               \
 }
@@ -167,8 +184,10 @@ uint64*         walk(uint64* pde, uint64 vaddr, int alloc);
     if (!(x))                                                       \
     {                                                               \
         check_assertion();                                          \
-        cprintf("%s:%d: assertion failed at cpu %d: %s\n",          \
+        printf("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");\
+        printf("\n%s:%d: ASSERTION FAILED AT CPU %d: %s\n",         \
         __FILE__, __LINE__, cpuid(), s);                            \
+        printf("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");\
         for (;;);                                                   \
     }                                                               \
 }
@@ -176,8 +195,10 @@ uint64*         walk(uint64* pde, uint64 vaddr, int alloc);
 #define         panic(s)                                            \
 {                                                                   \
     check_assertion();                                              \
-    cprintf("%s:%d: panicked at cpu %d: %s\n",                      \
+    printf("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");\
+    printf("\n%s:%d: PANICKED AT CPU %d: %s\n",                     \
     __FILE__, __LINE__, cpuid(), s);                                \
+    printf("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");\
     for (;;);                                                       \
 }
 

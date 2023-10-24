@@ -23,25 +23,25 @@ static void readsb(int dev, struct superblock *sb)
 
 void fsinit(int dev)
 {
-    cprintf("fsinit begins...\n");
+    printf("fsinit begins...\n");
     readsb(dev, &sb);
     if (sb.magic != FSMAGIC)
         panic("invalid file system");
-    cprintf("magic valid!\n");
+    printf("magic valid!\n");
     initlog(dev, &sb);
 
     struct inode* ip = namei("/README");
     if (ip != NULL)
     {
-        char str[114];
-        cprintf("ip link: %d\n", ip->nlink);
+        char str[501];
+        printf("ip link: %d\n", ip->nlink);
         ilock(ip);
-        cprintf("ip link: %d\n", ip->nlink);
-        cprintf("ip ref: %d\n", ip->ref);
-        readi(ip, 0, (uint64)str, 0, 113);
+        printf("ip link: %d\n", ip->nlink);
+        printf("ip ref: %d\n", ip->ref);
+        readi(ip, 0, (uint64)str, 0, 500);
         iunlock(ip);
-        str[114] = '\0';
-        cprintf("README: %s\n", str);
+        str[500] = '\0';
+        printf("README: %s\n", str);
     }
 }
 
@@ -83,7 +83,7 @@ static uint balloc(uint dev)
         }
         brelse(bp);
     }
-    cprintf("balloc: out of blocks\n");
+    printf("balloc: out of blocks\n");
     return 0;
 }
 
@@ -215,7 +215,7 @@ struct inode* ialloc(uint dev, short type)
         }
         brelse(bp);
     }
-    cprintf("ialloc: no inodes\n");
+    printf("ialloc: no inodes\n");
     return NULL;
 }
 
@@ -338,7 +338,7 @@ void iput(struct inode* ip)
 
     if (ip->ref == 1 && ip->valid && ip->nlink == 0)
     {
-        //cprintf("truncate and free!\n");
+        //printf("truncate and free!\n");
         // inode has no links and no other references: truncate and free.
 
         // ip->ref == 1 means no other process can have ip locked,
