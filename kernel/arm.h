@@ -1,6 +1,7 @@
 #ifndef __KERNEL_ARM_H
 #define __KERNEL_ARM_H
 
+#include "defs.h"
 #include "types.h"
 #include "sysregs.h"
 

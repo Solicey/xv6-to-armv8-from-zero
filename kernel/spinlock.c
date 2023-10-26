@@ -77,7 +77,9 @@ void pop_off(void)
     assert(c->noff > 0);
     c->noff -= 1;
     if (c->noff == 0 && c->intena)
+    {
         intr_on();
+    }
 }
 
 // Check whether this cpu is holding the lock.

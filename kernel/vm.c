@@ -62,7 +62,7 @@ int mappages(uint64* pde, uint64 vaddr, uint64 paddr, uint64 size, int perm)
         //printf("pde: 0x%p, a: 0x%p\n", pde, a);
         if ((pte = walk(pde, a, 1)) == NULL)
         {
-            printf("mappages: walk failed");
+            printf("mappages: walk failed\n");
             return -1;
         }
 
@@ -355,5 +355,42 @@ void uvmclear(uint64* pde, uint64 vaddr)
     if (pte == NULL)
         panic("uvmclear");
 
-    *pte &= (*pte & ~(0x03 << 6)) | AP_KERNEL | AP_RW;
+    *pte = (*pte & ~(AP_MASK)) | AP_KERNEL | AP_RW;
+}
+
+// Given a parent process's page table, copy
+// its memory into a child's page table.
+// Copies both the page table and the
+// physical memory.
+// returns 0 on success, -1 on failure.
+// frees any allocated pages on failure.
+int uvmcopy(uint64* old, uint64* new, uint64 size)
+{
+    uint64* pte;
+    uint64 paddr, i;
+    uint perm;
+    char* mem;
+
+    for (i = 0; i < size; i += PG_SIZE)
+    {
+        if ((pte = walk(old, i, 0)) == NULL)
+            panic("uvmcopy: pte should exist");
+        if ((*pte & MM_TYPE_VALID) == 0)
+            panic("uvmcopy: page not present");
+        paddr = P2V(*pte & PG_ADDR_MASK);
+        perm = *pte & AP_MASK;
+        if ((mem = kalloc()) == NULL)
+            goto err;
+        memmove((void*)mem, (void*)paddr, PG_SIZE);
+        if (mappages(new, i, (uint64)mem, PG_SIZE, perm) != 0)
+        {
+            kfree(mem);
+            goto err;
+        }
+    }
+    return 0;
+
+err:
+    uvmunmap(new, 0, i / PG_SIZE, 1);
+    return -1;
 }

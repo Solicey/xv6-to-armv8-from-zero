@@ -157,14 +157,14 @@ int uartgetc(void)
     return *R(UART_DR);
 }
 
-/*void uartputs(const char* s)
+void _uartputs(const char* s)
 {
     while (*s != '\0')
     {
         *R(UART_DR) = (uint)(*s);
         s++;
     }
-}*/
+}
 
 // enable uart interrupt
 void uartsti(void)

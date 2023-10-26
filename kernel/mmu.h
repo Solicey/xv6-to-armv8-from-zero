@@ -12,6 +12,7 @@
 #define AP_USER                 (1 << 6)
 #define AP_RW                   (0 << 7)
 #define AP_RO                   (1 << 7)
+#define AP_MASK                 (3 << 6)
 
 // Access flags
 #define AF_USED                 (1 << 10)

@@ -7,5 +7,8 @@
 #define SYS_open    3
 #define SYS_mknod   4
 #define SYS_dup     5
+#define SYS_fork    6
+#define SYS_wait    7
+#define SYS_yield   8
 
 #endif

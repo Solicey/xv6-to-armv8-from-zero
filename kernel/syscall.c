@@ -9,6 +9,9 @@ extern uint64 sys_write(void);
 extern uint64 sys_open(void);
 extern uint64 sys_mknod(void);
 extern uint64 sys_dup(void);
+extern uint64 sys_fork(void);
+extern uint64 sys_wait(void);
+extern uint64 sys_yield(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -18,7 +21,10 @@ static uint64(*syscalls[])(void) = {
 [SYS_write] sys_write,
 [SYS_open] sys_open,
 [SYS_mknod] sys_mknod,
-[SYS_dup] sys_dup
+[SYS_dup] sys_dup,
+[SYS_fork] sys_fork,
+[SYS_wait] sys_wait,
+[SYS_yield] sys_yield
 };
 
 void syscall(void)
@@ -27,7 +33,7 @@ void syscall(void)
     struct proc* p = myproc();
 
     num = p->trapframe->x0;
-    if ((num > 0) && (num <= NELEM(syscalls)) && syscalls[num])
+    if ((num >= 0) && (num <= NELEM(syscalls)) && syscalls[num])
     {
         ret = syscalls[num]();
 

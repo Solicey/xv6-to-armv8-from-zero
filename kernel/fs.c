@@ -27,22 +27,8 @@ void fsinit(int dev)
     readsb(dev, &sb);
     if (sb.magic != FSMAGIC)
         panic("invalid file system");
-    printf("magic valid!\n");
+    //printf("magic valid!\n");
     initlog(dev, &sb);
-
-    struct inode* ip = namei("/README");
-    if (ip != NULL)
-    {
-        char str[501];
-        printf("ip link: %d\n", ip->nlink);
-        ilock(ip);
-        printf("ip link: %d\n", ip->nlink);
-        printf("ip ref: %d\n", ip->ref);
-        readi(ip, 0, (uint64)str, 0, 500);
-        iunlock(ip);
-        str[500] = '\0';
-        printf("README: %s\n", str);
-    }
 }
 
 // Zero a block.

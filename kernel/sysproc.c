@@ -9,3 +9,21 @@ uint64 sys_exit(void)
     exit(n);
     return 0;
 }
+
+uint64 sys_fork(void)
+{
+    return fork();
+}
+
+uint64 sys_wait(void)
+{
+    uint64 p;
+    argaddr(1, &p);
+    return wait(p);
+}
+
+uint64 sys_yield(void)
+{
+    yield();
+    return 0;
+}

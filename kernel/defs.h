@@ -87,13 +87,16 @@ void            printfinit(void);
 int             either_copyin(void* dst, int user_src, uint64 src, uint64 len);
 int             either_copyout(int user_dst, uint64 dst, void* src, uint64 len);
 void            exit(int status);
+int             fork(void);
 int             killed(struct proc *p);
 struct cpu*     mycpu(void);
 struct proc*    myproc(void);
 void            procinit(void);
+void            sched(void);
 void            scheduler(void);
 void            sleep(void* chan, struct spinlock* lk);
 void            userinit(void);
+int             wait(uint64 addr);
 void            wakeup(void* chan);
 void            yield(void);
 
@@ -144,7 +147,7 @@ void            uartputc(int c);
 void            uartputc_sync(int c);
 void            uartstart(void);
 void            uartsti(void);
-//void            uartputs(const char* s);
+void            _uartputs(const char* s);
 
 // virtio_disk.c
 void            virtio_disk_init(void);
@@ -158,6 +161,7 @@ int             copyout(uint64* pde, uint64 dstvaddr, char *src, uint64 len);
 int             mappages(uint64* pde, uint64 vaddr, uint64 paddr, uint64 size, int perm);
 uint64          uvmalloc(uint64* pde, uint64 oldsz, uint64 newsz);
 void            uvmclear(uint64* pde, uint64 vaddr);
+int             uvmcopy(uint64* old, uint64* new, uint64 size);
 uint64*         uvmcreate(void);
 void            uvmfirst(uint64* pde, char* src, uint size);
 void            uvmfree(uint64* pde, uint64 size);

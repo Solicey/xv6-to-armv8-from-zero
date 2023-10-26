@@ -53,7 +53,6 @@ uint64 sys_exec(void)
         printf("   exec argv[%d]: %s\n", i, argv[i]);
     }
 
-    // TODO: exec
     int ret = exec(path, argv);
 
     printf("exec get ret!\n");

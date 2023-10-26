@@ -9,6 +9,9 @@ int write(int fd, const void* p, int n);
 int open(const char* path, int omode);
 int mknod(const char* path, short major, short minor);
 int dup(int fd);
+int fork(void);
+int wait(int* addr);
+int yield(void);
 
 // ulib.c
 void printf(const char*, ...);

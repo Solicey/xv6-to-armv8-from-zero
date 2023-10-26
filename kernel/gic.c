@@ -71,7 +71,7 @@ static void defintr(struct trapframe* f, int id)
     printf("unhandled interrupt!\n");
 }
 
-static void irqhinit()
+static void intrinit()
 {
     for (int i = 0; i < IRQ_MAX_COUNT; i++)
     {
@@ -150,7 +150,7 @@ void gicinit(void)
     gic_base = (uint*)(P2V(GIC_BASE));
 
     cpuinit();
-    irqhinit();
+    intrinit();
 
     ppiset(IRQ_TIMER0, 0);
     spiset(IRQ_UART, 1);
@@ -164,6 +164,7 @@ void gicinit(void)
 void irqhandle(struct trapframe* f, uint32 el)
 {
     int id = GICC_REG(GICC_IAR);
-    intrs[id](f, id, el);
+    // ! put this before intrs, or yield might not reach it
     GICC_REG(GICC_EOIR) = id;
+    intrs[id](f, id, el);
 }

@@ -8,6 +8,7 @@ void svcintr(struct trapframe* f, uint32 el, uint32 esr)
     struct proc* p = myproc();
 
     p->trapframe = f;
+
     syscall();
 }
 
@@ -33,5 +34,5 @@ void errintr(uint64 type)
 {
     //intr_off();
     //panic("interrupt type %d not implemented!\n", type);
-    //printf("error exception: %d\n", type);
+    printf("error exception: %d\n", type);
 }
