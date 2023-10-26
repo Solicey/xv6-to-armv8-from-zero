@@ -12,6 +12,9 @@ extern uint64 sys_dup(void);
 extern uint64 sys_fork(void);
 extern uint64 sys_wait(void);
 extern uint64 sys_yield(void);
+extern uint64 sys_read(void);
+extern uint64 sys_chdir(void);
+extern uint64 sys_close(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -24,7 +27,10 @@ static uint64(*syscalls[])(void) = {
 [SYS_dup] sys_dup,
 [SYS_fork] sys_fork,
 [SYS_wait] sys_wait,
-[SYS_yield] sys_yield
+[SYS_yield] sys_yield,
+[SYS_read] sys_read,
+[SYS_chdir] sys_chdir,
+[SYS_close] sys_close
 };
 
 void syscall(void)

@@ -51,7 +51,7 @@ struct log log;
 static void recover_from_log(void);
 static void commit();
 
-void initlog(int dev, struct superblock *sb)
+void initlog(int dev, struct superblock* sb)
 {
     if (sizeof(struct logheader) >= BSIZE)
         panic("initlog: too big logheader");
@@ -70,8 +70,8 @@ static void install_trans(int recovering)
 
     for (tail = 0; tail < log.lh.n; tail++)
     {
-        struct buf *lbuf = bread(log.dev, log.start + tail + 1); // read log block
-        struct buf *dbuf = bread(log.dev, log.lh.block[tail]); // read dst
+        struct buf* lbuf = bread(log.dev, log.start + tail + 1); // read log block
+        struct buf* dbuf = bread(log.dev, log.lh.block[tail]); // read dst
         memmove(dbuf->data, lbuf->data, BSIZE);  // copy block to dst
         bwrite(dbuf);  // write dst to disk
         if (recovering == 0)
@@ -125,8 +125,8 @@ static void write_log(void)
 
     for (tail = 0; tail < log.lh.n; tail++)
     {
-        struct buf *to = bread(log.dev, log.start + tail + 1); // log block
-        struct buf *from = bread(log.dev, log.lh.block[tail]); // cache block
+        struct buf* to = bread(log.dev, log.start + tail + 1); // log block
+        struct buf* from = bread(log.dev, log.lh.block[tail]); // cache block
         memmove(to->data, from->data, BSIZE);
         bwrite(to);  // write the log
         brelse(from);
@@ -155,7 +155,7 @@ static void commit()
 //   modify bp->data[]
 //   log_write(bp)
 //   brelse(bp)
-void log_write(struct buf *b)
+void log_write(struct buf* b)
 {
     int i;
 

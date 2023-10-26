@@ -12,7 +12,7 @@ void* memset(void* dst, int c, uint n)
 
 int memcmp(const void* v1, const void* v2, uint n)
 {
-    const uchar *s1, *s2;
+    const uchar* s1, * s2;
 
     s1 = v1;
     s2 = v2;

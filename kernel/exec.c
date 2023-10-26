@@ -31,16 +31,16 @@ static int loadseg(uint64* pde, uint64 vaddr, struct inode* ip, uint offset, uin
     return 0;
 }
 
-int exec(char *path, char **argv)
+int exec(char* path, char** argv)
 {
-    char *s, *last;
+    char* s, * last;
     int i, off;
     uint64 argc, sz = 0, sp, ustack[MAXARG], stackbase;
     struct elfhdr elf;
     struct inode* ip;
     struct proghdr ph;
-    uint64 *pde = NULL, *oldpde;
-    struct proc *p = myproc();
+    uint64* pde = NULL, * oldpde;
+    struct proc* p = myproc();
 
     begin_op();
 

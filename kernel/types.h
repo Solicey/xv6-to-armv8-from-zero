@@ -21,6 +21,6 @@ typedef long long           int64;
 #define NULL                0
 #endif
 
-typedef void (*intrhandler)  (struct trapframe *tf, int id, uint32 el);
+typedef void (*intrhandler)  (struct trapframe* tf, int id, uint32 el);
 
 #endif

@@ -276,7 +276,7 @@ int copyin(uint64* pde, char* dst, uint64 srcvaddr, uint64 len)
 // Copy from kernel to user.
 // Copy len bytes from src to virtual address dstva in a given page table.
 // Return 0 on success, -1 on error.
-int copyout(uint64* pde, uint64 dstvaddr, char *src, uint64 len)
+int copyout(uint64* pde, uint64 dstvaddr, char* src, uint64 len)
 {
     uint64 n, va0, pa0;
     while (len > 0)

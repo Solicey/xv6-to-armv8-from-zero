@@ -24,7 +24,7 @@ static inline void disb()
 }
 
 /* Load vector base (virtual) address register (EL1). */
-static inline void lvbar(void *vaddr)
+static inline void lvbar(void* vaddr)
 {
     disb();
     asm volatile("msr vbar_el1, %[x]" : : [x] "r"(vaddr) : );

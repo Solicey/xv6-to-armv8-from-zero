@@ -32,13 +32,11 @@ int main(void)
         }
         if (pid == 0)
         {
-            printf("child!\n");
             for (;;) { printf("C "); }
             //exec("sh", argv);
             //printf("init: exec sh failed\n");
             //exit(1);
         }
-        printf("fa! child pid: %d\n", pid);
         for (;;) { printf("F "); }
 
         for (;;)

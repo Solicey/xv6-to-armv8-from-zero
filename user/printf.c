@@ -51,7 +51,7 @@ static void printptr(int fd, uint64 x)
 // Print to the given fd. Only understands %d, %x, %p, %s.
 void vprintf(int fd, const char* fmt, va_list ap)
 {
-    char *s;
+    char* s;
     int c, i, state;
 
     state = 0;

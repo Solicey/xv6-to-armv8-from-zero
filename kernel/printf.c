@@ -37,10 +37,10 @@ static void printint(int64 x, int base, int sign)
         consputc(buf[i]);
 }
 
-static void vprintf(void (*putc)(char), const char *fmt, va_list ap)
+static void vprintf(void (*putc)(char), const char* fmt, va_list ap)
 {
     int i, c;
-    char *s;
+    char* s;
     for (i = 0; (c = fmt[i] & 0xff) != 0; i++)
     {
         if (c != '%')
@@ -73,7 +73,7 @@ static void vprintf(void (*putc)(char), const char *fmt, va_list ap)
         case 'p':
             consputc('0');
             consputc('x');
-            printint((int64)va_arg(ap, void *), 16, 0);
+            printint((int64)va_arg(ap, void*), 16, 0);
             break;
         case 'c':
             putc(va_arg(ap, int));
@@ -96,7 +96,7 @@ static void vprintf(void (*putc)(char), const char *fmt, va_list ap)
 }
 
 /* Print to the console. */
-void printf(const char *fmt, ...)
+void printf(const char* fmt, ...)
 {
     va_list ap;
 

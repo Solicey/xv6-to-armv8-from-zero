@@ -37,8 +37,8 @@ struct cpu* mycpu(void)
 struct proc* myproc(void)
 {
     push_off();
-    struct cpu *c = mycpu();
-    struct proc *p = c->proc;
+    struct cpu* c = mycpu();
+    struct proc* p = c->proc;
     pop_off();
     return p;
 }
@@ -272,7 +272,7 @@ void scheduler(void)
 void sched(void)
 {
     int intena;
-    struct proc *p = myproc();
+    struct proc* p = myproc();
 
     assert(holding(&p->lock));
     assert(mycpu()->noff == 1);
@@ -313,7 +313,7 @@ void yield(void)
     release(&p->lock);
 }
 
-int killed(struct proc *p)
+int killed(struct proc* p)
 {
     int k;
 
@@ -418,7 +418,7 @@ int either_copyin(void* dst, int user_src, uint64 src, uint64 len)
 // Caller must hold wait_lock.
 void reparent(struct proc* p)
 {
-    struct proc *pp;
+    struct proc* pp;
 
     for (pp = proc; pp < &proc[NPROC]; pp++)
     {
@@ -435,7 +435,7 @@ void reparent(struct proc* p)
 // until its parent calls wait().
 void exit(int status)
 {
-    struct proc *p = myproc();
+    struct proc* p = myproc();
 
     if (p == initproc)
         panic("init exiting");
@@ -445,7 +445,7 @@ void exit(int status)
     {
         if (p->ofile[fd])
         {
-            struct file *f = p->ofile[fd];
+            struct file* f = p->ofile[fd];
             fileclose(f);
             p->ofile[fd] = 0;
         }
@@ -481,8 +481,8 @@ void exit(int status)
 int fork(void)
 {
     int i, pid;
-    struct proc *np;
-    struct proc *p = myproc();
+    struct proc* np;
+    struct proc* p = myproc();
 
     // Allocate process.
     if ((np = allocproc()) == NULL)
@@ -535,9 +535,9 @@ int fork(void)
 // Return -1 if this process has no children.
 int wait(uint64 addr)
 {
-    struct proc *pp;
+    struct proc* pp;
     int havekids, pid;
-    struct proc *p = myproc();
+    struct proc* p = myproc();
 
     acquire(&wait_lock);
 

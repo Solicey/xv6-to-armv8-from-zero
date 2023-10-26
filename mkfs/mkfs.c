@@ -35,17 +35,17 @@ uint freeblock;
 void balloc(int);
 void wsect(uint, void*);
 void winode(uint, struct dinode*);
-void rinode(uint inum, struct dinode *ip);
-void rsect(uint sec, void *buf);
+void rinode(uint inum, struct dinode* ip);
+void rsect(uint sec, void* buf);
 uint ialloc(ushort type);
-void iappend(uint inum, void *p, int n);
-void die(const char *);
+void iappend(uint inum, void* p, int n);
+void die(const char*);
 
 // convert to riscv byte order
 ushort xshort(ushort x)
 {
     ushort y;
-    uchar *a = (uchar*)&y;
+    uchar* a = (uchar*)&y;
     a[0] = x;
     a[1] = x >> 8;
     return y;
@@ -54,7 +54,7 @@ ushort xshort(ushort x)
 uint xint(uint x)
 {
     uint y;
-    uchar *a = (uchar*)&y;
+    uchar* a = (uchar*)&y;
     a[0] = x;
     a[1] = x >> 8;
     a[2] = x >> 16;
@@ -62,7 +62,7 @@ uint xint(uint x)
     return y;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     int i, cc, fd;
     uint rootino, inum, off;
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
     for (i = 2; i < argc; i++)
     {
         // get rid of "user/"
-        char *shortname;
+        char* shortname;
         if (strncmp(argv[i], "user/", 5) == 0)
             shortname = argv[i] + 5;
         else
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
     exit(0);
 }
 
-void wsect(uint sec, void *buf)
+void wsect(uint sec, void* buf)
 {
     if (lseek(fsfd, sec * BSIZE, 0) != sec * BSIZE)
         die("lseek");
@@ -177,11 +177,11 @@ void wsect(uint sec, void *buf)
         die("write");
 }
 
-void winode(uint inum, struct dinode *ip)
+void winode(uint inum, struct dinode* ip)
 {
     char buf[BSIZE];
     uint bn;
-    struct dinode *dip;
+    struct dinode* dip;
 
     bn = IBLOCK(inum, sb);
     rsect(bn, buf);
@@ -190,11 +190,11 @@ void winode(uint inum, struct dinode *ip)
     wsect(bn, buf);
 }
 
-void rinode(uint inum, struct dinode *ip)
+void rinode(uint inum, struct dinode* ip)
 {
     char buf[BSIZE];
     uint bn;
-    struct dinode *dip;
+    struct dinode* dip;
 
     bn = IBLOCK(inum, sb);
     rsect(bn, buf);
@@ -202,7 +202,7 @@ void rinode(uint inum, struct dinode *ip)
     *ip = *dip;
 }
 
-void rsect(uint sec, void *buf)
+void rsect(uint sec, void* buf)
 {
     if (lseek(fsfd, sec * BSIZE, 0) != sec * BSIZE)
         die("lseek");
@@ -241,9 +241,9 @@ void balloc(int used)
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-void iappend(uint inum, void *xp, int n)
+void iappend(uint inum, void* xp, int n)
 {
-    char *p = (char*)xp;
+    char* p = (char*)xp;
     uint fbn, off, n1;
     struct dinode din;
     char buf[BSIZE];
@@ -291,7 +291,7 @@ void iappend(uint inum, void *xp, int n)
     winode(inum, &din);
 }
 
-void die(const char *s)
+void die(const char* s)
 {
     perror(s);
     exit(1);

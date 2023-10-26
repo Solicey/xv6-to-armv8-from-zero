@@ -88,7 +88,8 @@ $U/initcode: $U/initcode.S
 	$(OBJDUMP) -x $@ > $U/initcode.hdr
 
 UPROGS = \
-	$U/_init
+	$U/_init \
+	$U/_sh
 
 ULIB = $U/ulib.o $U/usys.o $U/printf.o
 

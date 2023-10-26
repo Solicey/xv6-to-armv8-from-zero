@@ -12,9 +12,9 @@
 struct superblock sb;
 
 // Read the super block.
-static void readsb(int dev, struct superblock *sb)
+static void readsb(int dev, struct superblock* sb)
 {
-    struct buf *bp;
+    struct buf* bp;
 
     bp = bread(dev, 1);
     memmove(sb, bp->data, sizeof(*sb));
@@ -34,7 +34,7 @@ void fsinit(int dev)
 // Zero a block.
 static void bzero(int dev, int bno)
 {
-    struct buf *bp;
+    struct buf* bp;
 
     bp = bread(dev, bno);
     memset(bp->data, 0, BSIZE);
@@ -49,7 +49,7 @@ static void bzero(int dev, int bno)
 static uint balloc(uint dev)
 {
     int b, bi, m;
-    struct buf *bp;
+    struct buf* bp;
 
     bp = 0;
     for (b = 0; b < sb.size; b += BPB)
@@ -76,7 +76,7 @@ static uint balloc(uint dev)
 // Free a disk block.
 static void bfree(int dev, uint b)
 {
-    struct buf *bp;
+    struct buf* bp;
     int bi, m;
 
     bp = bread(dev, BBLOCK(b, sb));
@@ -209,10 +209,10 @@ struct inode* ialloc(uint dev, short type)
 // Must be called after every change to an ip->xxx field
 // that lives on disk.
 // Caller must hold ip->lock.
-void iupdate(struct inode *ip)
+void iupdate(struct inode* ip)
 {
-    struct buf *bp;
-    struct dinode *dip;
+    struct buf* bp;
+    struct dinode* dip;
 
     bp = bread(ip->dev, IBLOCK(ip->inum, sb));
     dip = (struct dinode*)bp->data + ip->inum % IPB;
@@ -231,7 +231,7 @@ void iupdate(struct inode *ip)
 // the inode and does not read it from disk.
 static struct inode* iget(uint dev, uint inum)
 {
-    struct inode *ip, *empty;
+    struct inode* ip, * empty;
 
     acquire(&itable.lock);
 
@@ -265,7 +265,7 @@ static struct inode* iget(uint dev, uint inum)
 
 // Increment reference count for ip.
 // Returns ip to enable ip = idup(ip1) idiom.
-struct inode* idup(struct inode *ip)
+struct inode* idup(struct inode* ip)
 {
     acquire(&itable.lock);
     ip->ref++;
@@ -366,7 +366,7 @@ void iunlockput(struct inode* ip)
 // returns 0 if out of disk space.
 static uint bmap(struct inode* ip, uint bn)
 {
-    uint addr, *a;
+    uint addr, * a;
     struct buf* bp;
 
     if (bn < NDIRECT)
@@ -415,8 +415,8 @@ static uint bmap(struct inode* ip, uint bn)
 void itrunc(struct inode* ip)
 {
     int i, j;
-    struct buf *bp;
-    uint *a;
+    struct buf* bp;
+    uint* a;
 
     for (i = 0; i < NDIRECT; i++)
     {
@@ -646,7 +646,7 @@ static char* skipelem(char* path, char* name)
 // Must be called inside a transaction since it calls iput().
 static struct inode* namex(char* path, int nameiparent, char* name)
 {
-    struct inode *ip, *next;
+    struct inode* ip, * next;
 
     if (*path == '/')
         ip = iget(ROOTDEV, ROOTINO);

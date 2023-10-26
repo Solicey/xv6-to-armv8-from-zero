@@ -10,5 +10,8 @@
 #define SYS_fork    6
 #define SYS_wait    7
 #define SYS_yield   8
+#define SYS_read    9
+#define SYS_chdir   10
+#define SYS_close   11
 
 #endif

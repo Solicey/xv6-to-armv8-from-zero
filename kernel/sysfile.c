@@ -6,10 +6,10 @@
 
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
-static int argfd(int n, int *pfd, struct file **pf)
+static int argfd(int n, int* pfd, struct file** pf)
 {
     int fd;
-    struct file *f;
+    struct file* f;
 
     argint(n, &fd);
     if (fd < 0 || fd >= NOFILE || (f = myproc()->ofile[fd]) == NULL)
@@ -23,7 +23,7 @@ static int argfd(int n, int *pfd, struct file **pf)
 
 uint64 sys_exec(void)
 {
-    char path[MAXPATH], *argv[MAXARG];
+    char path[MAXPATH], * argv[MAXARG];
     int i;
     uint64 uargv, uarg;
 
@@ -70,7 +70,7 @@ bad:
 
 uint64 sys_write(void)
 {
-    struct file *f;
+    struct file* f;
     int n;
     uint64 p;
 
@@ -81,6 +81,21 @@ uint64 sys_write(void)
         return -1;
 
     return filewrite(f, p, n);
+}
+
+uint64 sys_read(void)
+{
+    struct file* f;
+    int n;
+    uint64 p;
+
+    argaddr(2, &p);
+    argint(3, &n);
+
+    if (argfd(1, NULL, &f) < 0)
+        return -1;
+
+    return fileread(f, p, n);
 }
 
 // Allocate a file descriptor for the given file.
@@ -102,9 +117,9 @@ static int fdalloc(struct file* f)
 }
 
 // If success, return ip with lock
-static struct inode* create(char *path, short type, short major, short minor)
+static struct inode* create(char* path, short type, short major, short minor)
 {
-    struct inode *ip, *dp;
+    struct inode* ip, * dp;
     char name[DIRSIZ];
 
     if ((dp = nameiparent(path, name)) == NULL)
@@ -247,7 +262,7 @@ uint64 sys_open(void)
 
 uint64 sys_mknod(void)
 {
-    struct inode *ip;
+    struct inode* ip;
     char path[MAXPATH];
     int major, minor;
 
@@ -268,7 +283,7 @@ uint64 sys_mknod(void)
 
 uint64 sys_dup(void)
 {
-    struct file *f;
+    struct file* f;
     int fd;
 
     if (argfd(1, NULL, &f) < 0)
@@ -277,4 +292,42 @@ uint64 sys_dup(void)
         return -1;
     filedup(f);
     return fd;
+}
+
+uint64 sys_chdir(void)
+{
+    char path[MAXPATH];
+    struct inode* ip;
+    struct proc* p = myproc();
+
+    begin_op();
+    if (argstr(1, path, MAXPATH) < 0 || (ip = namei(path)) == 0)
+    {
+        end_op();
+        return -1;
+    }
+    ilock(ip);
+    if (ip->type != T_DIR)
+    {
+        iunlockput(ip);
+        end_op();
+        return -1;
+    }
+    iunlock(ip);
+    iput(p->cwd);
+    end_op();
+    p->cwd = ip;
+    return 0;
+}
+
+uint64 sys_close(void)
+{
+    int fd;
+    struct file* f;
+
+    if (argfd(1, &fd, &f) < 0)
+        return -1;
+    myproc()->ofile[fd] = NULL;
+    fileclose(f);
+    return 0;
 }
