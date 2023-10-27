@@ -12,7 +12,8 @@ void initlock(struct spinlock* lk, char* name)
 void acquire(struct spinlock* lk)
 {
     push_off(); // disable interrupts to avoid deadlock.
-    assert(!holding(lk));
+    if (holding(lk))
+        panic("acquire");
 
     int tmp;
     asm volatile(
@@ -37,8 +38,8 @@ void acquire(struct spinlock* lk)
 
 void release(struct spinlock* lk)
 {
-    assert(lk->locked);
-    assert(holding(lk));
+    if (!holding(lk))
+        panic("release");
 
     lk->cpu = 0;
 
@@ -73,8 +74,10 @@ void push_off(void)
 void pop_off(void)
 {
     struct cpu* c = mycpu();
-    assert(!intr_get());        // no interrupt
-    assert(c->noff > 0);
+    if (intr_get())
+        panic("pop_off - interruptible");
+    if (c->noff < 1)
+        panic("pop_off");
     c->noff -= 1;
     if (c->noff == 0 && c->intena)
     {

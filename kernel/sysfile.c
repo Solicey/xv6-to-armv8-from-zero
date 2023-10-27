@@ -331,3 +331,105 @@ uint64 sys_close(void)
     fileclose(f);
     return 0;
 }
+
+uint64 sys_fstat(void)
+{
+    struct file* f;
+    uint64 st; // user pointer to struct stat
+
+    argaddr(2, &st);
+    if (argfd(1, 0, &f) < 0)
+        return -1;
+    return filestat(f, st);
+}
+
+uint64 sys_mkdir(void)
+{
+    char path[MAXPATH];
+    struct inode* ip;
+
+    begin_op();
+    if (argstr(1, path, MAXPATH) < 0 || (ip = create(path, T_DIR, 0, 0)) == 0)
+    {
+        end_op();
+        return -1;
+    }
+    iunlockput(ip);
+    end_op();
+    return 0;
+}
+
+// Is the directory dp empty except for "." and ".." ?
+static int isdirempty(struct inode* dp)
+{
+    int off;
+    struct dirent de;
+
+    for (off = 2 * sizeof(de); off < dp->size; off += sizeof(de))
+    {
+        if (readi(dp, 0, (uint64)&de, off, sizeof(de)) != sizeof(de))
+            panic("isdirempty: readi");
+        if (de.inum != 0)
+            return 0;
+    }
+    return 1;
+}
+
+uint64 sys_unlink(void)
+{
+    struct inode* ip, * dp;
+    struct dirent de;
+    char name[DIRSIZ], path[MAXPATH];
+    uint off;
+
+    if (argstr(1, path, MAXPATH) < 0)
+        return -1;
+
+    begin_op();
+    if ((dp = nameiparent(path, name)) == NULL)
+    {
+        end_op();
+        return -1;
+    }
+
+    ilock(dp);
+
+    // Cannot unlink "." or "..".
+    if (namecmp(name, ".") == 0 || namecmp(name, "..") == 0)
+        goto bad;
+
+    if ((ip = dirlookup(dp, name, &off)) == NULL)
+        goto bad;
+    ilock(ip);
+
+    if (ip->nlink < 1)
+        panic("unlink: nlink < 1");
+    if (ip->type == T_DIR && !isdirempty(ip))
+    {
+        iunlockput(ip);
+        goto bad;
+    }
+
+    memset(&de, 0, sizeof(de));
+    if (writei(dp, 0, (uint64)&de, off, sizeof(de)) != sizeof(de))
+        panic("unlink: writei");
+    if (ip->type == T_DIR)
+    {
+        dp->nlink--;
+        iupdate(dp);
+    }
+    iunlockput(dp);
+
+    ip->nlink--;
+    iupdate(ip);
+    iunlockput(ip);
+
+    end_op();
+
+    return 0;
+
+bad:
+    iunlockput(dp);
+    end_op();
+    return -1;
+}

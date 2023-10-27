@@ -49,7 +49,6 @@ void start()
         printf("hart %d starting\n", cpuid());
 
         //panic("PANIC!");
-        //assert(0);
         lvbar(vectors);
         timerinit();
         intr_on();

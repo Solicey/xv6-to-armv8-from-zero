@@ -53,7 +53,8 @@ int mappages(uint64* pde, uint64 vaddr, uint64 paddr, uint64 size, int perm)
     uint64 a, last;
     uint64* pte;
 
-    assert(size);
+    if (size == 0)
+        panic("mappages: size");
 
     a = PG_ROUND_DOWN(vaddr);
     last = PG_ROUND_DOWN(vaddr + size - 1);
@@ -67,7 +68,8 @@ int mappages(uint64* pde, uint64 vaddr, uint64 paddr, uint64 size, int perm)
         }
 
         // remapping
-        assert(!(*pte & MM_TYPE_VALID));
+        if (*pte & MM_TYPE_VALID)
+            panic("mappages: remap");
 
         *pte = (paddr & PG_ADDR_MASK) | perm | PTE_PAGE;
 
@@ -89,13 +91,17 @@ void uvmunmap(uint64* pde, uint64 vaddr, uint64 npages, int do_free)
     uint64 a;
     uint64* pte;
 
-    assert(vaddr % PG_SIZE == 0);
+    if ((vaddr % PG_SIZE) != 0)
+        panic("uvmunmap: not aligned");
 
     for (a = vaddr; a < vaddr + npages * PG_SIZE; a += PG_SIZE)
     {
-        assert(pte = walk(pde, a, 0));
-        assert(*pte & MM_TYPE_VALID);
-        assert((*pte & MM_TYPE_MASK) == MM_TYPE_PAGE);
+        if ((pte = walk(pde, a, 0)) == NULL)
+            panic("uvmunmap: walk");
+        if ((*pte & MM_TYPE_VALID) == 0)
+            panic("uvmunmap: not mapped");
+        if ((*pte & MM_TYPE_MASK) != MM_TYPE_PAGE)
+            panic("uvmunmap: not a leaf");
 
         if (do_free)
         {
@@ -120,9 +126,9 @@ void freewalk(uint64* pde)
             freewalk(child);
             pde[i] = 0;
         }
-        else
+        else if (pte & MM_TYPE_VALID)
         {
-            assert(!(pte & MM_TYPE_VALID));
+            panic("freewalk: leaf");
         }
     }
     kfree((void*)pde);
@@ -156,7 +162,8 @@ void uvmfirst(uint64* pde, char* src, uint size)
 {
     char* mem;
 
-    assert(size <= PG_SIZE);
+    if (size > PG_SIZE)
+        panic("uvmfirst: more than a page");
 
     mem = kalloc();
     printf("uvmfirst mem: 0x%p, src: 0x%p, size: %d\n", mem, src, size);
@@ -172,7 +179,9 @@ void uvmswitch(struct proc* p)
 
     push_off();
 
-    assert(p->pagetable);
+    if (p->pagetable == NULL)
+        panic("uvmswitch");
+
     val64 = (uint64)V2P(p->pagetable);
     //printf("uvmswitch pde: 0x%p\n", val64);
     lttbr0(val64);
@@ -189,7 +198,8 @@ uint64 walkaddr(uint64* pde, uint64 vaddr)
     uint64* pte;
     uint64 paddr;
 
-    assert(!(vaddr & KERN_BASE));
+    if (vaddr & KERN_BASE)
+        panic("walkaddr: user pages only");
 
     pte = walk(pde, vaddr, 0);
     if (pte == NULL)

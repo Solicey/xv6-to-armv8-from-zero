@@ -13,7 +13,7 @@ static struct
     int locking;
 } pr;
 
-volatile int assertion_failed = -1;
+volatile int panicked = -1;
 
 static void printint(int64 x, int base, int sign)
 {
@@ -112,11 +112,11 @@ void printf(const char* fmt, ...)
         release(&pr.lock);
 }
 
-void check_assertion(void)
+void check_panicked(void)
 {
     pr.locking = 0;
-    if (assertion_failed < 0)
-        assertion_failed = cpuid();
+    if (panicked < 0)
+        panicked = cpuid();
     else
         for (;;);
 }

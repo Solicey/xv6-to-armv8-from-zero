@@ -27,3 +27,15 @@ uint64 sys_yield(void)
     yield();
     return 0;
 }
+
+uint64 sys_sbrk(void)
+{
+    uint64 addr;
+    int n;
+
+    argint(1, &n);
+    addr = myproc()->size;
+    if (growproc(n) < 0)
+        return -1;
+    return addr;
+}

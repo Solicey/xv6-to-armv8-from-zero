@@ -89,9 +89,12 @@ $U/initcode: $U/initcode.S
 
 UPROGS = \
 	$U/_init \
-	$U/_sh
+	$U/_sh \
+	$U/_ls \
+	$U/_mkdir \
+	$U/_rm
 
-ULIB = $U/ulib.o $U/usys.o $U/printf.o
+ULIB = $U/ulib.o $U/usys.o $U/printf.o $U/umalloc.o
 
 $U/%.o: $U/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<

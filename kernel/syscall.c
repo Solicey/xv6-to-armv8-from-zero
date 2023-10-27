@@ -15,6 +15,10 @@ extern uint64 sys_yield(void);
 extern uint64 sys_read(void);
 extern uint64 sys_chdir(void);
 extern uint64 sys_close(void);
+extern uint64 sys_sbrk(void);
+extern uint64 sys_fstat(void);
+extern uint64 sys_mkdir(void);
+extern uint64 sys_unlink(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -30,7 +34,11 @@ static uint64(*syscalls[])(void) = {
 [SYS_yield] sys_yield,
 [SYS_read] sys_read,
 [SYS_chdir] sys_chdir,
-[SYS_close] sys_close
+[SYS_close] sys_close,
+[SYS_sbrk] sys_sbrk,
+[SYS_fstat] sys_fstat,
+[SYS_mkdir] sys_mkdir,
+[SYS_unlink] sys_unlink
 };
 
 void syscall(void)
@@ -92,7 +100,7 @@ static uint64 argraw(int n)
     case 5:
         return p->trapframe->x5;
     }
-    assert(0);
+    panic("argraw");
     return -1;
 }
 

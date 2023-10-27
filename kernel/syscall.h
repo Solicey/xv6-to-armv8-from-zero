@@ -13,5 +13,9 @@
 #define SYS_read    9
 #define SYS_chdir   10
 #define SYS_close   11
+#define SYS_sbrk    12
+#define SYS_fstat   13
+#define SYS_mkdir   14
+#define SYS_unlink  15
 
 #endif

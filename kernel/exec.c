@@ -50,6 +50,8 @@ int exec(char* path, char** argv)
         return -1;
     }
 
+    printf("exec path: %s\n", path);
+
     ilock(ip);
 
     // Check ELF header

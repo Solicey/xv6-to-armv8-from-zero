@@ -7,9 +7,15 @@ void svcintr(struct trapframe* f, uint32 el, uint32 esr)
 {
     struct proc* p = myproc();
 
-    p->trapframe = f;
+    if (p != NULL && el == 0)
+    {
+        p->trapframe = f;
+    }
 
     syscall();
+
+    if (p != NULL && el == 0 && killed(p))
+        exit(-1);
 }
 
 void defintr(struct trapframe* f, uint32 el, uint32 esr)
@@ -28,6 +34,10 @@ void irqintr(struct trapframe* f, uint32 el, uint32 esr)
     }
 
     irqhandle(f, el);
+
+    // ?
+    if (p != NULL && el == 0 && killed(p))
+        exit(-1);
 }
 
 void errintr(uint64 type)

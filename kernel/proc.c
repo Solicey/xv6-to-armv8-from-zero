@@ -274,10 +274,14 @@ void sched(void)
     int intena;
     struct proc* p = myproc();
 
-    assert(holding(&p->lock));
-    assert(mycpu()->noff == 1);
-    assert(p->state != RUNNING);
-    assert(!intr_get());    // sched should not be interruptable
+    if (!holding(&p->lock))
+        panic("sched p->lock");
+    if (mycpu()->noff != 1)
+        panic("sched locks");
+    if (p->state == RUNNING)
+        panic("sched running");
+    if (intr_get())
+        panic("sched interruptible");
 
     //printf("sched!\n");
 
@@ -583,4 +587,27 @@ int wait(uint64 addr)
         // Wait for a child to exit.
         sleep(p, &wait_lock);  //DOC: wait-sleep
     }
+}
+
+// Grow or shrink user memory by n bytes.
+// Return 0 on success, -1 on failure.
+int growproc(int n)
+{
+    uint64 sz;
+    struct proc* p = myproc();
+
+    sz = p->size;
+    if (n > 0)
+    {
+        if ((sz = uvmalloc(p->pagetable, sz, sz + n)) == 0)
+        {
+            return -1;
+        }
+    }
+    else if (n < 0)
+    {
+        sz = uvmdealloc(p->pagetable, sz, sz + n);
+    }
+    p->size = sz;
+    return 0;
 }

@@ -23,7 +23,7 @@ void bunpin(struct buf* b);
 void bwrite(struct buf* b);
 
 // console.c
-void check_assertion(void);
+void check_panicked(void);
 void consoleinit(void);
 void consoleintr(int c);
 int consoleread(int user_dst, uint64 dst, int n);
@@ -88,6 +88,7 @@ int either_copyin(void* dst, int user_src, uint64 src, uint64 len);
 int either_copyout(int user_dst, uint64 dst, void* src, uint64 len);
 void exit(int status);
 int fork(void);
+int growproc(int n);
 int killed(struct proc* p);
 struct cpu* mycpu(void);
 struct proc* myproc(void);
@@ -163,6 +164,7 @@ uint64 uvmalloc(uint64* pde, uint64 oldsz, uint64 newsz);
 void uvmclear(uint64* pde, uint64 vaddr);
 int uvmcopy(uint64* old, uint64* new, uint64 size);
 uint64* uvmcreate(void);
+uint64 uvmdealloc(uint64* pde, uint64 oldsz, uint64 newsz);
 void uvmfirst(uint64* pde, char* src, uint size);
 void uvmfree(uint64* pde, uint64 size);
 void uvmswitch(struct proc* p);
@@ -170,11 +172,11 @@ void uvmunmap(uint64* pde, uint64 vaddr, uint64 npages, int do_free);
 uint64* walk(uint64* pde, uint64 vaddr, int alloc);
 uint64 walkaddr(uint64* pde, uint64 vaddr);
 
-#define         assert(x)                                           \
+/*#define         assert(x)                                         \
 {                                                                   \
     if (!(x))                                                       \
     {                                                               \
-        check_assertion();                                          \
+        check_panicked();                                           \
         printf("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");\
         printf("\n%s:%d: ASSERTION FAILED AT CPU %d.\n",            \
         __FILE__, __LINE__, cpuid());                               \
@@ -187,18 +189,18 @@ uint64 walkaddr(uint64* pde, uint64 vaddr);
 {                                                                   \
     if (!(x))                                                       \
     {                                                               \
-        check_assertion();                                          \
+        check_panicked();                                           \
         printf("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");\
         printf("\n%s:%d: ASSERTION FAILED AT CPU %d: %s\n",         \
         __FILE__, __LINE__, cpuid(), s);                            \
         printf("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");\
         for (;;);                                                   \
     }                                                               \
-}
+}*/
 
 #define         panic(s)                                            \
 {                                                                   \
-    check_assertion();                                              \
+    check_panicked();                                               \
     printf("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");\
     printf("\n%s:%d: PANICKED AT CPU %d: %s\n",                     \
     __FILE__, __LINE__, cpuid(), s);                                \

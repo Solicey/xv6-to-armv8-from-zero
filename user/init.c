@@ -5,7 +5,7 @@
 #include "kernel/fcntl.h"
 #include "user.h"
 
-//char *argv[] = { "sh", 0 };
+char* argv[] = { "sh", 0 };
 
 int main(void)
 {
@@ -32,12 +32,12 @@ int main(void)
         }
         if (pid == 0)
         {
-            for (;;) { printf("C "); }
-            //exec("sh", argv);
-            //printf("init: exec sh failed\n");
-            //exit(1);
+            //for (;;) { printf("C "); }
+            exec("sh", argv);
+            printf("init: exec sh failed\n");
+            exit(1);
         }
-        for (;;) { printf("F "); }
+        //for (;;) { printf("F "); }
 
         for (;;)
         {

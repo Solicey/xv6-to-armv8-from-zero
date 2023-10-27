@@ -29,6 +29,7 @@ func:                           \
     ldr     x5, [sp], #0x08;    \
     br      x30;                
 
+SYSCALL(exec)
 SYSCALL(exit)
 SYSCALL(write)
 SYSCALL(open)
@@ -40,3 +41,7 @@ SYSCALL(yield)
 SYSCALL(read)
 SYSCALL(chdir)
 SYSCALL(close)
+SYSCALL(sbrk)
+SYSCALL(fstat)
+SYSCALL(mkdir)
+SYSCALL(unlink)

@@ -8,7 +8,7 @@
 
 static volatile uint* uart_base = (uint*)UART_BASE;
 
-extern volatile int assertion_failed;
+extern volatile int panicked;
 
 // the address of uart register r.
 #define R(r)            ((volatile uint32 *)(uart_base + (r)))
@@ -76,7 +76,7 @@ void uartputc(int c)
 
     acquire(&uart_tx_lock);
 
-    if (assertion_failed >= 0 && assertion_failed != cpuid())
+    if (panicked >= 0 && panicked != cpuid())
     {
         for (;;);
     }
@@ -101,7 +101,7 @@ void uartputc_sync(int c)
 {
     push_off();
 
-    if (assertion_failed >= 0 && assertion_failed != cpuid())
+    if (panicked >= 0 && panicked != cpuid())
     {
         for (;;);
     }

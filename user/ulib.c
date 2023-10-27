@@ -1,4 +1,6 @@
 #include "kernel/types.h"
+#include "kernel/stat.h"
+#include "kernel/fcntl.h"
 #include "user.h"
 
 //
@@ -70,4 +72,39 @@ char* gets(char* buf, int max)
     }
     buf[i] = '\0';
     return buf;
+}
+
+void* memmove(void* vdst, const void* vsrc, int n)
+{
+    char* dst;
+    const char* src;
+
+    dst = vdst;
+    src = vsrc;
+    if (src > dst)
+    {
+        while (n-- > 0)
+            *dst++ = *src++;
+    }
+    else
+    {
+        dst += n;
+        src += n;
+        while (n-- > 0)
+            *--dst = *--src;
+    }
+    return vdst;
+}
+
+int stat(const char* n, struct stat* st)
+{
+    int fd;
+    int r;
+
+    fd = open(n, O_RDONLY);
+    if (fd < 0)
+        return -1;
+    r = fstat(fd, st);
+    close(fd);
+    return r;
 }
