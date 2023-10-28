@@ -92,7 +92,8 @@ UPROGS = \
 	$U/_sh \
 	$U/_ls \
 	$U/_mkdir \
-	$U/_rm
+	$U/_rm \
+	$U/_echo
 
 ULIB = $U/ulib.o $U/usys.o $U/printf.o $U/umalloc.o
 

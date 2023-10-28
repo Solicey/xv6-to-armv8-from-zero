@@ -23,7 +23,7 @@ static void readsb(int dev, struct superblock* sb)
 
 void fsinit(int dev)
 {
-    printf("fsinit begins...\n");
+    //printf("fsinit begins...\n");
     readsb(dev, &sb);
     if (sb.magic != FSMAGIC)
         panic("invalid file system");

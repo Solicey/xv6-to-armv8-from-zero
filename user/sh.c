@@ -167,7 +167,7 @@ int main(void)
     // Read and run input commands.
     while (getcmd(buf, sizeof(buf)) >= 0)
     {
-        printf("echo: %s", buf);
+        //printf("echo: %s", buf);
         if (buf[0] == 'c' && buf[1] == 'd' && buf[2] == ' ')
         {
             // Chdir must be called by the parent, not the child.

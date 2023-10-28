@@ -18,7 +18,7 @@ int main(void)
     }
 
     dup(0);  // stdout
-    printf("\n[USER] Hello World!\n\n");
+    //printf("\n[USER] Hello World!\n\n");
     dup(0);  // stderr
 
     for (;;)

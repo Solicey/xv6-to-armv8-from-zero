@@ -39,7 +39,7 @@ void consoleinit(void)
     devsw[CONSOLE].read = consoleread;
     devsw[CONSOLE].write = consolewrite;
 
-    printf("consoleinit done!\n");
+    //printf("consoleinit done!\n");
 }
 
 //

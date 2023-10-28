@@ -251,6 +251,7 @@ void scheduler(void)
                 c->proc = p;
                 uvmswitch(p);
 
+                //printf("swtch cpu: %d, proc: %d\n", cpuid(), p->pid);
                 swtch(&c->context, &p->context);
 
                 // Process is done running for now.

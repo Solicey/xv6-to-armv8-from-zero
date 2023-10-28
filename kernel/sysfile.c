@@ -28,10 +28,10 @@ uint64 sys_exec(void)
     uint64 uargv, uarg;
 
     argaddr(2, &uargv);
-    printf("exec uargv: 0x%p\n", uargv);
+    //printf("exec uargv: 0x%p\n", uargv);
     if (argstr(1, path, MAXPATH) < 0)
         return -1;
-    printf("exec path: %s\n", path);
+    //printf("exec path: %s\n", path);
 
     memset(argv, 0, sizeof(argv));
     for (i = 0; ; i++)
@@ -50,12 +50,12 @@ uint64 sys_exec(void)
             goto bad;
         if (fetchstr(uarg, argv[i], PG_SIZE) < 0)
             goto bad;
-        printf("   exec argv[%d]: %s\n", i, argv[i]);
+        //printf("   exec argv[%d]: %s\n", i, argv[i]);
     }
 
     int ret = exec(path, argv);
 
-    printf("exec get ret!\n");
+    //printf("exec get ret!\n");
 
     for (i = 0; i < NELEM(argv) && argv[i] != 0; i++)
         kfree(argv[i]);

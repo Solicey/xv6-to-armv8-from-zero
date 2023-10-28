@@ -61,7 +61,7 @@ void uartinit(void)
 
     initlock(&uart_tx_lock, "uart");
 
-    printf("uartinit done!\n");
+    //printf("uartinit done!\n");
 }
 
 // add a character to the output buffer and tell the
@@ -172,7 +172,7 @@ void uartsti(void)
     *R(UART_IMSC) = UART_RXI;
     intrset(SPI2ID(IRQ_UART), uartintr);
 
-    printf("uartintr enabled!\n");
+    //printf("uartintr enabled!\n");
 }
 
 // uart interrupt handler

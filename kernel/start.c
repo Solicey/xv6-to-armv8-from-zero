@@ -17,9 +17,7 @@ void start()
         printfinit();
         consoleinit();
 
-        printf("\n");
-        printf("xv6 kernel is booting\n");
-        printf("\n");
+        printf("\nxv6 kernel is booting\n\n");
 
         kinit();
 
@@ -38,9 +36,6 @@ void start()
 
         __sync_synchronize();
         started = 1;
-
-        scheduler();
-        for (;;);
     }
     else
     {
@@ -51,14 +46,7 @@ void start()
         //panic("PANIC!");
         lvbar(vectors);
         timerinit();
-        intr_on();
-
-        for (;;);
     }
 
-    //asm volatile("swi #0");
-
-    //mappages(kpgdir, 0x0000000047000000, 0x46000000, 0x20000, AP_KERNEL);
-
-
+    scheduler();
 }

@@ -10,13 +10,13 @@ static int ticks_interval;
 void timerinit(void)
 {
     asm volatile("mrs %[r], cntfrq_el0" : [r] "=r"(timerfq) : : );
-    printf("timer frq: %d\n", timerfq);    // 62500000
+    //printf("timer frq: %d\n", timerfq);    // 62500000
     ticks_interval = timerfq / ticks_per_sec;
     asm volatile("msr cntp_tval_el0, %[x]" : : [x] "r"(ticks_interval) : );
     intrset(PPI2ID(IRQ_TIMER0), timerintr);
     asm volatile("msr cntp_ctl_el0, %[x]" : : [x] "r"(1) : );
 
-    printf("timerinit done!\n");
+    //printf("timerinit done!\n");
 }
 
 void timerintr(struct trapframe* f, int id, uint32 el)

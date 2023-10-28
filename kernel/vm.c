@@ -166,7 +166,7 @@ void uvmfirst(uint64* pde, char* src, uint size)
         panic("uvmfirst: more than a page");
 
     mem = kalloc();
-    printf("uvmfirst mem: 0x%p, src: 0x%p, size: %d\n", mem, src, size);
+    //printf("uvmfirst mem: 0x%p, src: 0x%p, size: %d\n", mem, src, size);
     memset(mem, 0, PG_SIZE);
     mappages(pde, 0, V2P(mem), PG_SIZE, AP_RW | AP_USER);
     memmove(mem, src, size);

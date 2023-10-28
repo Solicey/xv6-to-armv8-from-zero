@@ -60,7 +60,7 @@ static intrhandler      intrs[IRQ_MAX_COUNT];
 // register ih to irq handler list.
 void intrset(int id, intrhandler ih)
 {
-    printf("intrset! id: %d\n", id);
+    //printf("intrset! id: %d\n", id);
     if (id < IRQ_MAX_COUNT)
         intrs[id] = ih;
 }
@@ -158,7 +158,7 @@ void gicinit(void)
 
     group0enb();
 
-    printf("gicinit done!\n");
+    //printf("gicinit done!\n");
 }
 
 void irqhandle(struct trapframe* f, uint32 el)
