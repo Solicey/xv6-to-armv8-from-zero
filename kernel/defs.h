@@ -159,7 +159,7 @@ void virtio_disk_rw(struct buf* b, int write);
 int copyin(uint64* pde, char* dst, uint64 srcvaddr, uint64 len);
 int copyinstr(uint64* pde, char* dst, uint64 srcvaddr, uint64 max);
 int copyout(uint64* pde, uint64 dstvaddr, char* src, uint64 len);
-int mappages(uint64* pde, uint64 vaddr, uint64 paddr, uint64 size, int perm);
+int mappages(uint64* pde, uint64 vaddr, uint64 paddr, uint64 size, uint64 flags);
 uint64 uvmalloc(uint64* pde, uint64 oldsz, uint64 newsz);
 void uvmclear(uint64* pde, uint64 vaddr);
 int uvmcopy(uint64* old, uint64* new, uint64 size);

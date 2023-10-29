@@ -12,7 +12,9 @@
 #define AP_USER                 (1 << 6)
 #define AP_RW                   (0 << 7)
 #define AP_RO                   (1 << 7)
-#define AP_MASK                 (3 << 6)
+
+#define PXN                     (1l << 53)
+#define UXN                     (1l << 54)
 
 // Access flags
 #define AF_USED                 (1 << 10)
@@ -30,14 +32,13 @@
 #define MM_TYPE_PAGE            0x3
 #define MM_TYPE_MASK            0x3
 
-// PDE flags 
-#define PDE_PAGE                (MM_TYPE_BLOCK | (MT_NORMAL_NC << 2) | AP_KERNEL | AF_USED)
-#define PDE_DEVICE              (MM_TYPE_BLOCK | (MT_DEVICE_nGnRnE << 2) | AP_KERNEL | AF_USED)
-#define PDE_TABLE               MM_TYPE_TABLE
+// for initial kernel pte
+#define KERNEL_2M_PAGE          (MM_TYPE_BLOCK | (MT_NORMAL_NC << 2) | AP_KERNEL | AP_RW | AF_USED | UXN)
+#define KERNEL_2M_DEVICE        (MM_TYPE_BLOCK | (MT_DEVICE_nGnRnE << 2) | AP_KERNEL | AP_RW | AF_USED | UXN)
 
-// PTE flags 
-// Access permission not included
-#define PTE_PAGE                (MM_TYPE_PAGE | (MT_NORMAL_NC << 2) | AF_USED)
+// pte flag
+#define KERNEL_4K_PAGE          (MM_TYPE_PAGE | (MT_NORMAL_NC << 2) | AP_KERNEL | AP_RW | AF_USED | UXN)
+#define USER_4K_PAGE            (MM_TYPE_PAGE | (MT_NORMAL_NC << 2) | AP_USER | AP_RW | AF_USED | PXN)
 
 // extract the three 9-bit page table indices from a virtual address.
 #define PX_MASK                 0x1ff // 9 bits

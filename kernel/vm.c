@@ -46,9 +46,8 @@ uint64* walk(uint64* pde, uint64 vaddr, int alloc)
  * Create PTEs for virtual addresses starting at vaddr that refer to
  * physical addresses starting at paddr. vaddr and size might **NOT**
  * be page-aligned.
- * Use permission bits perm|PTE_P|PTE_TABLE|PTE_AF for the entries.
  */
-int mappages(uint64* pde, uint64 vaddr, uint64 paddr, uint64 size, int perm)
+int mappages(uint64* pde, uint64 vaddr, uint64 paddr, uint64 size, uint64 flags)
 {
     uint64 a, last;
     uint64* pte;
@@ -71,7 +70,7 @@ int mappages(uint64* pde, uint64 vaddr, uint64 paddr, uint64 size, int perm)
         if (*pte & MM_TYPE_VALID)
             panic("mappages: remap");
 
-        *pte = (paddr & PG_ADDR_MASK) | perm | PTE_PAGE;
+        *pte = (paddr & PG_ADDR_MASK) | flags;
 
         if (a == last)
             break;
@@ -168,7 +167,7 @@ void uvmfirst(uint64* pde, char* src, uint size)
     mem = kalloc();
     //printf("uvmfirst mem: 0x%p, src: 0x%p, size: %d\n", mem, src, size);
     memset(mem, 0, PG_SIZE);
-    mappages(pde, 0, V2P(mem), PG_SIZE, AP_RW | AP_USER);
+    mappages(pde, 0, V2P(mem), PG_SIZE, USER_4K_PAGE);
     memmove(mem, src, size);
 }
 
@@ -345,7 +344,7 @@ uint64 uvmalloc(uint64* pde, uint64 oldsz, uint64 newsz)
             return 0;
         }
         memset(mem, 0, PG_SIZE);
-        if (mappages(pde, a, (uint64)mem, PG_SIZE, AP_RW | AP_USER) != 0)
+        if (mappages(pde, a, (uint64)mem, PG_SIZE, USER_4K_PAGE) != 0)
         {
             kfree(mem);
             uvmdealloc(pde, a, oldsz);
@@ -365,7 +364,7 @@ void uvmclear(uint64* pde, uint64 vaddr)
     if (pte == NULL)
         panic("uvmclear");
 
-    *pte = (*pte & ~(AP_MASK)) | AP_KERNEL | AP_RW;
+    *pte = ((*pte) & ~(USER_4K_PAGE)) | KERNEL_4K_PAGE;
 }
 
 // Given a parent process's page table, copy
@@ -378,7 +377,6 @@ int uvmcopy(uint64* old, uint64* new, uint64 size)
 {
     uint64* pte;
     uint64 paddr, i;
-    uint perm;
     char* mem;
 
     for (i = 0; i < size; i += PG_SIZE)
@@ -388,11 +386,10 @@ int uvmcopy(uint64* old, uint64* new, uint64 size)
         if ((*pte & MM_TYPE_VALID) == 0)
             panic("uvmcopy: page not present");
         paddr = P2V(*pte & PG_ADDR_MASK);
-        perm = *pte & AP_MASK;
         if ((mem = kalloc()) == NULL)
             goto err;
         memmove((void*)mem, (void*)paddr, PG_SIZE);
-        if (mappages(new, i, (uint64)mem, PG_SIZE, perm) != 0)
+        if (mappages(new, i, (uint64)mem, PG_SIZE, (*pte & AP_USER) ? USER_4K_PAGE : KERNEL_4K_PAGE) != 0)
         {
             kfree(mem);
             goto err;
