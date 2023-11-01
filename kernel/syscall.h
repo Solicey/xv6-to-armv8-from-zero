@@ -17,5 +17,8 @@
 #define SYS_fstat   13
 #define SYS_mkdir   14
 #define SYS_unlink  15
+#define SYS_sleep   16
+#define SYS_pipe    17
+#define SYS_getpid  18
 
 #endif

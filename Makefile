@@ -29,7 +29,8 @@ OBJS = \
 	$K/log.o \
 	$K/file.o \
 	$K/exec.o \
-	$K/printf.o
+	$K/printf.o \
+	$K/pipe.o
 
 TOOLPREFIX = aarch64-linux-gnu-
 
@@ -93,7 +94,12 @@ UPROGS = \
 	$U/_ls \
 	$U/_mkdir \
 	$U/_rm \
-	$U/_echo
+	$U/_echo \
+	$U/_sleep \
+	$U/_primes \
+	$U/_pingpong \
+	$U/_find \
+	$U/_xargs
 
 ULIB = $U/ulib.o $U/usys.o $U/printf.o $U/umalloc.o
 

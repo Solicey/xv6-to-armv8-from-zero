@@ -19,6 +19,9 @@ extern uint64 sys_sbrk(void);
 extern uint64 sys_fstat(void);
 extern uint64 sys_mkdir(void);
 extern uint64 sys_unlink(void);
+extern uint64 sys_sleep(void);
+extern uint64 sys_pipe(void);
+extern uint64 sys_getpid(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -38,7 +41,10 @@ static uint64(*syscalls[])(void) = {
 [SYS_sbrk] sys_sbrk,
 [SYS_fstat] sys_fstat,
 [SYS_mkdir] sys_mkdir,
-[SYS_unlink] sys_unlink
+[SYS_unlink] sys_unlink,
+[SYS_sleep] sys_sleep,
+[SYS_pipe] sys_pipe,
+[SYS_getpid] sys_getpid
 };
 
 void syscall(void)

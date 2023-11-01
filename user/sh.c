@@ -62,11 +62,11 @@ void runcmd(struct cmd*) __attribute__((noreturn));
 // Execute cmd.  Never returns.
 void runcmd(struct cmd* cmd)
 {
-    //int p[2];
+    int p[2];
     struct backcmd* bcmd;
     struct execcmd* ecmd;
     struct listcmd* lcmd;
-    //struct pipecmd* pcmd;
+    struct pipecmd* pcmd;
     struct redircmd* rcmd;
 
     if (cmd == NULL)
@@ -105,7 +105,7 @@ void runcmd(struct cmd* cmd)
         break;
 
     case PIPE:
-        /*pcmd = (struct pipecmd*)cmd;
+        pcmd = (struct pipecmd*)cmd;
         if (pipe(p) < 0)
             panic("pipe");
         if (fork1() == 0)
@@ -127,7 +127,7 @@ void runcmd(struct cmd* cmd)
         close(p[0]);
         close(p[1]);
         wait(0);
-        wait(0);*/
+        wait(0);
         break;
 
     case BACK:

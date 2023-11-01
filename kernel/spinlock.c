@@ -17,10 +17,10 @@ void acquire(struct spinlock* lk)
 
     int tmp;
     asm volatile(
-        "1: ldxr    %0, %1\n"       //
-        "   cbnz    %0, 1b\n"
-        "   stxr    %w0, %2, %1\n"
-        "   cbnz    %0, 1b\n"
+        "1: ldxr    %w0, %w1\n"       //
+        "   cbnz    %w0, 1b\n"
+        "   stxr    %w0, %w2, %w1\n"
+        "   cbnz    %w0, 1b\n"
         : "=&r"(tmp), "+Q"(lk->locked)
         : "r"(1)
         : "memory"

@@ -1,6 +1,7 @@
 #include "types.h"
 #include "defs.h"
 #include "proc.h"
+#include "spinlock.h"
 
 uint64 sys_exit(void)
 {
@@ -38,4 +39,33 @@ uint64 sys_sbrk(void)
     if (growproc(n) < 0)
         return -1;
     return addr;
+}
+
+extern struct spinlock tickslock;
+extern uint ticks;
+
+uint64 sys_sleep(void)
+{
+    int n;
+    uint ticks0;
+
+    argint(1, &n);
+    acquire(&tickslock);
+    ticks0 = ticks;
+    while (ticks - ticks0 < n)
+    {
+        if (killed(myproc()))
+        {
+            release(&tickslock);
+            return -1;
+        }
+        sleep(&ticks, &tickslock);
+    }
+    release(&tickslock);
+    return 0;
+}
+
+uint64 sys_getpid(void)
+{
+    return myproc()->pid;
 }

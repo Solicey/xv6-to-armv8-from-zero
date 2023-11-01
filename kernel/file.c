@@ -70,7 +70,7 @@ void fileclose(struct file* f)
 
     if (ff.type == FD_PIPE)
     {
-        // TODO: pipeclose(ff.pipe, ff.writable);
+        pipeclose(ff.pipe, ff.writable);
     }
     else if (ff.type == FD_INODE || ff.type == FD_DEVICE)
     {
@@ -110,7 +110,7 @@ int fileread(struct file* f, uint64 addr, int n)
 
     if (f->type == FD_PIPE)
     {
-        // TODO: r = piperead(f->pipe, addr, n);
+        r = piperead(f->pipe, addr, n);
     }
     else if (f->type == FD_DEVICE)
     {
@@ -144,7 +144,7 @@ int filewrite(struct file* f, uint64 addr, int n)
 
     if (f->type == FD_PIPE)
     {
-        // TODO: ret = pipewrite(f->pipe, addr, n);
+        ret = pipewrite(f->pipe, addr, n);
     }
     else if (f->type == FD_DEVICE)
     {

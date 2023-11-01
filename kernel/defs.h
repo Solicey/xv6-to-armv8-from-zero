@@ -79,6 +79,12 @@ void end_op(void);
 void initlog(int dev, struct superblock* sb);
 void log_write(struct buf* b);
 
+// pipe.c
+int pipealloc(struct file** f0, struct file** f1);
+void pipeclose(struct pipe* pi, int writable);
+int piperead(struct pipe* pi, uint64 addr, int n);
+int pipewrite(struct pipe* pi, uint64 addr, int n);
+
 // printf.c
 void printf(const char* fmt, ...);
 void printfinit(void);

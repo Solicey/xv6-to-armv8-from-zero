@@ -21,6 +21,9 @@ char* sbrk(int n);
 int fstat(int fd, struct stat* stat);
 int mkdir(const char* path);
 int unlink(const char* path);
+int sleep(int t);
+int pipe(int* fdarray);
+int getpid(void);
 
 // ulib.c
 void printf(const char*, ...);
@@ -35,5 +38,6 @@ void* malloc(uint nbytes);
 void free(void* ap);
 void* memmove(void* vdst, const void* vsrc, int n);
 int stat(const char* n, struct stat* st);
+int atoi(const char* s);
 
 #endif
