@@ -3,7 +3,6 @@
 #include "types.h"
 #include "memlayout.h"
 #include "defs.h"
-#include "arm.h"
 #include "virt.h"
 
 static volatile uint* gic_base;
@@ -102,29 +101,29 @@ static void enbset(int id)
 }
 
 // set target processor
-static void cpu0set(int id)
+static void cpuset(int id, int cpu)
 {
     int offset = id / 4;
     int bitpos = (id % 4) * 8;
     uint val = GICD_REG(GICD_ITARGETSR, offset);
-    uchar tcpu = 0x01;      // cpu0
-    val |= tcpu << bitpos;
+    val |= cpu << bitpos;
     GICD_REG(GICD_ITARGETSR, offset) = val;
 }
 
-static void spiset(int spi, int isedge)
+static void spiset(int spi, int isedge, int cpu)
 {
     int id = SPI2ID(spi);
     cfgset(id, isedge);
     enbset(id);
-    cpu0set(id);
+    cpuset(id, cpu);
 }
 
-static void ppiset(int ppi, int isedge)
+static void ppiset(int ppi, int isedge, int cpu)
 {
     int id = PPI2ID(ppi);
     cfgset(id, isedge);
     enbset(id);
+    cpuset(id, cpu);
 }
 
 // enable group 0
@@ -147,24 +146,29 @@ static void cpuinit()
 
 void gicinit(void)
 {
-    gic_base = (uint*)(P2V(GIC_BASE));
-
-    cpuinit();
     intrinit();
-
-    ppiset(IRQ_TIMER0, 0);
-    spiset(IRQ_UART, 1);
-    spiset(IRQ_MMIO, 1);
-
-    group0enb();
-
+    gic_base = (uint*)(P2V(GIC_BASE));
     //printf("gicinit done!\n");
 }
 
-void irqhandle(struct trapframe* f, uint32 el)
+void gichartinit(void)
+{
+    // ?
+    cpuinit();
+
+    ppiset(IRQ_TIMER0, 0, 1 << cpuid());
+    spiset(IRQ_UART, 0, 1 << cpuid());
+    spiset(IRQ_MMIO, 1, 1 << cpuid());
+
+    group0enb();
+}
+
+int irqhandle(struct trapframe* f, uint32 el)
 {
     int id = GICC_REG(GICC_IAR);
-    // ! put this before intrs, or yield might not reach it
-    GICC_REG(GICC_EOIR) = id;
     intrs[id](f, id, el);
+    GICC_REG(GICC_EOIR) = id;
+    if (id == PPI2ID(IRQ_TIMER0))
+        return 1;
+    return 0;
 }

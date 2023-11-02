@@ -22,6 +22,10 @@ extern uint64 sys_unlink(void);
 extern uint64 sys_sleep(void);
 extern uint64 sys_pipe(void);
 extern uint64 sys_getpid(void);
+extern uint64 sys_procdump(void);
+extern uint64 sys_kill(void);
+extern uint64 sys_link(void);
+extern uint64 sys_uptime(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -44,7 +48,11 @@ static uint64(*syscalls[])(void) = {
 [SYS_unlink] sys_unlink,
 [SYS_sleep] sys_sleep,
 [SYS_pipe] sys_pipe,
-[SYS_getpid] sys_getpid
+[SYS_getpid] sys_getpid,
+[SYS_procdump] sys_procdump,
+[SYS_kill] sys_kill,
+[SYS_link] sys_link,
+[SYS_uptime] sys_uptime
 };
 
 void syscall(void)

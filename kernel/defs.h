@@ -64,8 +64,9 @@ void stati(struct inode* ip, struct stat* st);
 int writei(struct inode* ip, int user_src, uint64 src, uint off, uint n);
 
 // gic.c
+void gichartinit(void);
 void gicinit(void);
-void irqhandle(struct trapframe* f, uint32 el);
+int irqhandle(struct trapframe* f, uint32 el);
 void intrset(int id, intrhandler ih);
 
 // kalloc.c
@@ -95,12 +96,15 @@ int either_copyout(int user_dst, uint64 dst, void* src, uint64 len);
 void exit(int status);
 int fork(void);
 int growproc(int n);
+int kill(int pid);
 int killed(struct proc* p);
 struct cpu* mycpu(void);
 struct proc* myproc(void);
+void procdump(void);
 void procinit(void);
 void sched(void);
 void scheduler(void);
+void setkilled(struct proc* p);
 void sleep(void* chan, struct spinlock* lk);
 void userinit(void);
 int wait(uint64 addr);
@@ -145,6 +149,7 @@ void syscall(void);
 // timer.c
 void timerinit(void);
 void timerintr(struct trapframe* f, int id, uint32 el);
+void timerset(void);
 
 // uart.c
 int uartgetc(void);
@@ -166,7 +171,7 @@ int copyin(uint64* pde, char* dst, uint64 srcvaddr, uint64 len);
 int copyinstr(uint64* pde, char* dst, uint64 srcvaddr, uint64 max);
 int copyout(uint64* pde, uint64 dstvaddr, char* src, uint64 len);
 int mappages(uint64* pde, uint64 vaddr, uint64 paddr, uint64 size, uint64 flags);
-uint64 uvmalloc(uint64* pde, uint64 oldsz, uint64 newsz);
+uint64 uvmalloc(uint64* pde, uint64 oldsz, uint64 newsz, uint64 flags);
 void uvmclear(uint64* pde, uint64 vaddr);
 int uvmcopy(uint64* old, uint64* new, uint64 size);
 uint64* uvmcreate(void);

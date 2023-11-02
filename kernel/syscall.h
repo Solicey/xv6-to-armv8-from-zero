@@ -20,5 +20,9 @@
 #define SYS_sleep   16
 #define SYS_pipe    17
 #define SYS_getpid  18
+#define SYS_procdump 19
+#define SYS_kill    20
+#define SYS_link    21
+#define SYS_uptime  22
 
 #endif

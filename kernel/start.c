@@ -23,8 +23,10 @@ void start()
 
         lvbar(vectors);
         gicinit();
+        gichartinit();
         uartsti();
         timerinit();
+        timerset();
 
         binit();
         iinit();
@@ -45,7 +47,8 @@ void start()
 
         //panic("PANIC!");
         lvbar(vectors);
-        timerinit();
+        gichartinit();
+        timerset();
     }
 
     scheduler();

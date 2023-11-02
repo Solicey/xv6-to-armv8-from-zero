@@ -21,12 +21,14 @@
 // for use by the kernel and user pages
 // from physical address 0x40000000 to PHYSTOP.
 #define KERN_BASE       0xffff000000000000l
-#define KERN_LINK       (KERN_BASE + PHY_LINK)
 
 #define V2P(x)          ((uint64)(x) - KERN_BASE)
 #define P2V(x)          ((uint64)(x) + KERN_BASE)    
 
 // size of initial kernel stack
 #define KSTACK_SIZE     PG_SIZE * NCPU
+
+// one beyond the highest possible virtual address.
+#define MAXVA           0x0001000000000000l
 
 #endif

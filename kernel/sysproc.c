@@ -69,3 +69,29 @@ uint64 sys_getpid(void)
 {
     return myproc()->pid;
 }
+
+uint64 sys_procdump(void)
+{
+    procdump();
+    return 0;
+}
+
+uint64 sys_kill(void)
+{
+    int pid;
+
+    argint(1, &pid);
+    return kill(pid);
+}
+
+// return how many clock tick interrupts have occurred
+// since start.
+uint64 sys_uptime(void)
+{
+    uint xticks;
+
+    acquire(&tickslock);
+    xticks = ticks;
+    release(&tickslock);
+    return xticks;
+}

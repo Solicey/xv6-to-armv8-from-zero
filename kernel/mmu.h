@@ -38,7 +38,11 @@
 
 // pte flag
 #define KERNEL_4K_PAGE          (MM_TYPE_PAGE | (MT_NORMAL_NC << 2) | AP_KERNEL | AP_RW | AF_USED | UXN)
-#define USER_4K_PAGE            (MM_TYPE_PAGE | (MT_NORMAL_NC << 2) | AP_USER | AP_RW | AF_USED | PXN)
+#define USER_4K_PAGE_RW         (MM_TYPE_PAGE | (MT_NORMAL_NC << 2) | AP_USER | AP_RW | AF_USED | PXN)
+#define USER_4K_PAGE_RO         (MM_TYPE_PAGE | (MT_NORMAL_NC << 2) | AP_USER | AP_RO | AF_USED | PXN)
+#define USER_4K_PAGE_RW_XN      (MM_TYPE_PAGE | (MT_NORMAL_NC << 2) | AP_USER | AP_RW | AF_USED | PXN | UXN)
+#define USER_4K_PAGE_RO_XN      (MM_TYPE_PAGE | (MT_NORMAL_NC << 2) | AP_USER | AP_RO | AF_USED | PXN | UXN)
+#define MASK_4K_PAGE            (MM_TYPE_PAGE | (MT_NORMAL_NC << 2) | AP_USER | AP_RO | AF_USED | PXN | UXN)
 
 // extract the three 9-bit page table indices from a virtual address.
 #define PX_MASK                 0x1ff // 9 bits

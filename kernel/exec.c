@@ -31,6 +31,17 @@ static int loadseg(uint64* pde, uint64 vaddr, struct inode* ip, uint offset, uin
     return 0;
 }
 
+uint64 getflags(int flags)
+{
+    if ((flags & 0x1) && (flags & 0x2))
+        return USER_4K_PAGE_RW;
+    if (flags & 0x1)
+        return USER_4K_PAGE_RO;
+    if (flags & 0x2)
+        return USER_4K_PAGE_RW_XN;
+    return USER_4K_PAGE_RO_XN;
+}
+
 int exec(char* path, char** argv)
 {
     char* s, * last;
@@ -76,7 +87,7 @@ int exec(char* path, char** argv)
         if (ph.vaddr % PG_SIZE != 0)
             goto bad;
         uint64 sz1;
-        if ((sz1 = uvmalloc(pde, sz, ph.vaddr + ph.memsz)) == 0)
+        if ((sz1 = uvmalloc(pde, sz, ph.vaddr + ph.memsz, getflags(ph.flags))) == 0)
             goto bad;
         sz = sz1;
         if (loadseg(pde, ph.vaddr, ip, ph.off, ph.filesz) < 0)
@@ -94,7 +105,7 @@ int exec(char* path, char** argv)
     // Use the second as the user stack.
     sz = PG_ROUND_UP(sz);
     uint64 sz1;
-    if ((sz1 = uvmalloc(pde, sz, sz + 2 * PG_SIZE)) == 0)
+    if ((sz1 = uvmalloc(pde, sz, sz + 2 * PG_SIZE, USER_4K_PAGE_RW_XN)) == 0)
         goto bad;
     sz = sz1;
     uvmclear(pde, sz - 2 * PG_SIZE);

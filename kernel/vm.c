@@ -167,7 +167,7 @@ void uvmfirst(uint64* pde, char* src, uint size)
     mem = kalloc();
     //printf("uvmfirst mem: 0x%p, src: 0x%p, size: %d\n", mem, src, size);
     memset(mem, 0, PG_SIZE);
-    mappages(pde, 0, V2P(mem), PG_SIZE, USER_4K_PAGE);
+    mappages(pde, 0, V2P(mem), PG_SIZE, USER_4K_PAGE_RO);
     memmove(mem, src, size);
 }
 
@@ -197,8 +197,8 @@ uint64 walkaddr(uint64* pde, uint64 vaddr)
     uint64* pte;
     uint64 paddr;
 
-    if (vaddr & KERN_BASE)
-        panic("walkaddr: user pages only");
+    if (vaddr >= MAXVA)
+        return 0;
 
     pte = walk(pde, vaddr, 0);
     if (pte == NULL)
@@ -326,7 +326,7 @@ uint64 uvmdealloc(uint64* pde, uint64 oldsz, uint64 newsz)
 
 // Allocate PTEs and physical memory to grow process from oldsz to
 // newsz, which need not be page aligned.  Returns new size or 0 on error.
-uint64 uvmalloc(uint64* pde, uint64 oldsz, uint64 newsz)
+uint64 uvmalloc(uint64* pde, uint64 oldsz, uint64 newsz, uint64 flags)
 {
     char* mem;
     uint64 a;
@@ -344,7 +344,7 @@ uint64 uvmalloc(uint64* pde, uint64 oldsz, uint64 newsz)
             return 0;
         }
         memset(mem, 0, PG_SIZE);
-        if (mappages(pde, a, (uint64)mem, PG_SIZE, USER_4K_PAGE) != 0)
+        if (mappages(pde, a, (uint64)mem, PG_SIZE, flags) != 0)
         {
             kfree(mem);
             uvmdealloc(pde, a, oldsz);
@@ -364,7 +364,7 @@ void uvmclear(uint64* pde, uint64 vaddr)
     if (pte == NULL)
         panic("uvmclear");
 
-    *pte = ((*pte) & ~(USER_4K_PAGE)) | KERNEL_4K_PAGE;
+    *pte = ((*pte) & ~(MASK_4K_PAGE)) | KERNEL_4K_PAGE;
 }
 
 // Given a parent process's page table, copy
@@ -389,7 +389,7 @@ int uvmcopy(uint64* old, uint64* new, uint64 size)
         if ((mem = kalloc()) == NULL)
             goto err;
         memmove((void*)mem, (void*)paddr, PG_SIZE);
-        if (mappages(new, i, (uint64)mem, PG_SIZE, (*pte & AP_USER) ? USER_4K_PAGE : KERNEL_4K_PAGE) != 0)
+        if (mappages(new, i, (uint64)mem, PG_SIZE, (*pte & MASK_4K_PAGE)) != 0)
         {
             kfree(mem);
             goto err;

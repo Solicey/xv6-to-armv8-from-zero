@@ -24,6 +24,10 @@ int unlink(const char* path);
 int sleep(int t);
 int pipe(int* fdarray);
 int getpid(void);
+int procdump(void);
+int kill(int pid);
+int link(const char* old, const char* new);
+int uptime(void);
 
 // ulib.c
 void printf(const char*, ...);

@@ -2,44 +2,40 @@
 #include "defs.h"
 #include "arm.h"
 #include "virt.h"
-// timer frequency
-static uint64 timerfq;
-static int ticks_per_sec = 20;
-static int ticks_interval;
 
 struct spinlock tickslock;
 uint ticks;
 
+#define TICK_PER_SEC    50
+
+void timerset(void)
+{
+    unsigned long value, freq, cnt, cmp;
+    value = 0;
+    asm volatile("msr cntp_ctl_el0, %0" : : "r"(value) : );
+    asm volatile("mrs %0, cntfrq_el0" : "=r"(freq) : : );
+    asm volatile("mrs %0, cntpct_el0" : "=r"(cnt) : : );
+    cmp = cnt + (freq / 1000) * TICK_PER_SEC;
+    asm volatile("msr cntp_cval_el0, %0" : : "r"(cmp));
+    value = 1;
+    asm volatile("msr cntp_ctl_el0, %0" : : "r"(value));
+}
+
 void timerinit(void)
 {
-    asm volatile("mrs %[r], cntfrq_el0" : [r] "=r"(timerfq) : : );
-    //printf("timer frq: %d\n", timerfq);    // 62500000
-    ticks_interval = timerfq / ticks_per_sec;
-    asm volatile("msr cntp_tval_el0, %[x]" : : [x] "r"(ticks_interval) : );
     intrset(PPI2ID(IRQ_TIMER0), timerintr);
-    asm volatile("msr cntp_ctl_el0, %[x]" : : [x] "r"(1) : );
-
     initlock(&tickslock, "time");
     ticks = 0;
-    //printf("timerinit done!\n");
 }
 
 void timerintr(struct trapframe* f, int id, uint32 el)
 {
-    asm volatile("msr cntp_tval_el0, %[x]" : : [x] "r"(ticks_interval) : );
-    //printf("timer! hart %d\n", cpuid());
+    timerset();
     if (cpuid() == 0)
     {
         acquire(&tickslock);
         ticks++;
         wakeup(&ticks);
         release(&tickslock);
-    }
-    // give up cpu on lower el
-    if (el == 0)
-    {
-        //printf("el0 timer! hart %d pid %d\n", cpuid(), myproc()->pid);
-        // ! no return
-        yield();
     }
 }

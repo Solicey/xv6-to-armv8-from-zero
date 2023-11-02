@@ -1,7 +1,6 @@
 #ifndef __KERNEL_ARM_H
 #define __KERNEL_ARM_H
 
-#include "defs.h"
 #include "types.h"
 #include "sysregs.h"
 
@@ -61,6 +60,13 @@ static inline void lttbr1(uint64 paddr)
     disb();
     asm volatile("tlbi vmalle1");
     disb();
+}
+
+static inline uint64 r_sp()
+{
+    uint64 x;
+    asm volatile("mov %0, sp" : "=r"(x) : : );
+    return x;
 }
 
 #endif

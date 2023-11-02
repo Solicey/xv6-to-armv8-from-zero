@@ -99,7 +99,19 @@ UPROGS = \
 	$U/_primes \
 	$U/_pingpong \
 	$U/_find \
-	$U/_xargs
+	$U/_xargs \
+	$U/_ps \
+	$U/_cat \
+	$U/_forktest \
+	$U/_grind \
+	$U/_kill \
+	$U/_ln \
+	$U/_grep \
+	$U/_stressfs \
+	$U/_usertests \
+	$U/_deadloop \
+	$U/_zombie \
+	$U/_wc
 
 ULIB = $U/ulib.o $U/usys.o $U/printf.o $U/umalloc.o
 

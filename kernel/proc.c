@@ -471,6 +471,7 @@ void exit(int status)
 
     acquire(&p->lock);
 
+    //printf("proc %d become zombie!\n", p->pid);
     p->xstate = status;
     p->state = ZOMBIE;
 
@@ -572,6 +573,7 @@ int wait(uint64 addr)
                     freeproc(pp);
                     release(&pp->lock);
                     release(&wait_lock);
+                    //printf("wait find zombie %d\n", pid);
                     return pid;
                 }
                 release(&pp->lock);
@@ -600,7 +602,7 @@ int growproc(int n)
     sz = p->size;
     if (n > 0)
     {
-        if ((sz = uvmalloc(p->pagetable, sz, sz + n)) == 0)
+        if ((sz = uvmalloc(p->pagetable, sz, sz + n, USER_4K_PAGE_RW_XN)) == 0)
         {
             return -1;
         }
@@ -611,4 +613,67 @@ int growproc(int n)
     }
     p->size = sz;
     return 0;
+}
+
+// Print a process listing to console.  For debugging.
+// Runs when user enters ps.
+// No lock to avoid wedging a stuck machine further.
+void procdump(void)
+{
+    static char* states[] = {
+    [UNUSED] "unused",
+    [USED]      "used",
+    [SLEEPING]  "sleep ",
+    [RUNNABLE]  "runble",
+    [RUNNING]   "run   ",
+    [ZOMBIE]    "zombie"
+    };
+    struct proc* p;
+    char* state;
+
+    for (p = proc; p < &proc[NPROC]; p++)
+    {
+        if (p->state == UNUSED)
+            continue;
+        if (p->state >= 0 && p->state < NELEM(states) && states[p->state])
+            state = states[p->state];
+        else
+            state = "???";
+        printf("%d %s %s", p->pid, state, p->name);
+        printf("\n");
+    }
+}
+
+// Kill the process with the given pid.
+// The victim won't exit until it tries to return
+// to user space (see usertrap() in trap.c).
+int kill(int pid)
+{
+    struct proc* p;
+
+    for (p = proc; p < &proc[NPROC]; p++)
+    {
+        acquire(&p->lock);
+        if (p->pid == pid)
+        {
+            p->killed = 1;
+            if (p->state == SLEEPING)
+            {
+                // Wake process from sleep().
+                p->state = RUNNABLE;
+            }
+            //printf("set pid %d killed!\n", p->pid);
+            release(&p->lock);
+            return 0;
+        }
+        release(&p->lock);
+    }
+    return -1;
+}
+
+void setkilled(struct proc* p)
+{
+    acquire(&p->lock);
+    p->killed = 1;
+    release(&p->lock);
 }
