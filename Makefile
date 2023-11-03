@@ -111,7 +111,8 @@ UPROGS = \
 	$U/_usertests \
 	$U/_deadloop \
 	$U/_zombie \
-	$U/_wc
+	$U/_wc \
+	$U/_malware
 
 ULIB = $U/ulib.o $U/usys.o $U/printf.o $U/umalloc.o
 
@@ -137,7 +138,7 @@ QEMURUN = $(QEMU) -machine virt  \
 		-cpu cortex-a72 -m 128 \
 		-smp $(NCPU) -kernel $K/kernel -nographic \
 		$(QEMUDISK)
-		
+
 QEMUDISK = -drive file=fs.img,if=none,format=raw,id=x0 \
 		-device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0 \
 		-global virtio-mmio.force-legacy=false
@@ -148,7 +149,7 @@ r: $K/kernel fs.img
 hh: $K/kernel fs.img
 	$(QEMURUN) -monitor telnet:127.0.0.1:9191,server,nowait
 
-gg: 
+gg:
 	telnet 127.0.0.1 9191
 
 h: $K/kernel fs.img
@@ -163,7 +164,7 @@ c:
 	$U/initcode.o $U/initcode.out $U/initcode \
 	mkfs/mkfs $(UPROGS) */*.o */*.d */*.asm */*.hdr
 
-rr: 
+rr:
 	make c
 	make a
 	make r

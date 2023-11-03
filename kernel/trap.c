@@ -22,12 +22,13 @@ void defintr(struct trapframe* f, uint32 el, uint32 esr)
 {
     struct proc* p = myproc();
 
+    printf("an exception occurred! esr: 0x%x\n", esr);
+
     if (p != NULL && el == 0)
     {
         exit(-1);
     }
     //intr_off();
-    //printf("default exception!\n");
 }
 
 void irqintr(struct trapframe* f, uint32 el, uint32 esr)
@@ -62,5 +63,5 @@ void errintr(uint64 type)
 {
     //intr_off();
     //panic("interrupt type %d not implemented!\n", type);
-    //printf("error exception: %d\n", type);
+    printf("unhandled exception! type: %d\n", type);
 }
